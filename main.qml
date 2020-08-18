@@ -12,8 +12,10 @@ ApplicationWindow {
     x:Screen.width*0.5-width*0.5
     y:Screen.height*0.5-height*0.5
     color: 'transparent'
+
     property bool dev: false
-    property string moduleName: 'tcv'
+
+    property string moduleName: 'twitch-speech'
     property int fs: app.width*0.035
     property color c1: 'black'
     property color c2: 'white'
@@ -169,6 +171,11 @@ ApplicationWindow {
     //        font.pixelSize: app.fs*4
     //        wrapMode: Text.WrapAnywhere
     //    }
+    property bool iniciado: false
+    property int vInit: 0
+    property string uMsg: ''
+    property real uMp3Duration: 0.0
+    property string initString: 'iniciando audio del chat'
     Timer{
         id:tCheck
         running: false
@@ -203,12 +210,26 @@ ApplicationWindow {
                                 if(user.indexOf('itomyy17')>=0){
                                     unik.speak(msg)
                                 }else{
-                                    speakMp3(msg)
+                                    speakMp3(user, msg)
                                 }
                                 //}
 
                             }
                         }
+
+                        //Comandos de Usuarios
+                        if(isVM(msg)){
+                            //Set all speak
+                            if((''+mensaje).indexOf('!voz=')===1){
+                                let m0=(''+mensaje).split('!voz=')
+                                let voice=parseInt(m0[1])
+                                if(voice<=app.arrayLanguages.length-1){
+                                    manSqliteData.setVoice(user, voice)
+                                }
+                            }
+                        }
+
+                        //Comandos de Administradores
                         if(isVM(msg)&&(''+msg).indexOf('chat.whatsapp.com')<0&&(''+mensaje).indexOf('!')===1&&app.mods.indexOf(user)>=0){
                             let m0=mensaje.split('!')
                             let m1=m0[1].split(' ')
@@ -269,12 +290,6 @@ ApplicationWindow {
             });
         }
     }
-    property bool iniciado: false
-    property int vInit: 0
-    property string uMsg: ''
-    property real uMp3Duration: 0.0
-    property string initString: 'iniciando audio del chat'
-
     Timer{
         id: tInit
         running: false
@@ -287,7 +302,7 @@ ApplicationWindow {
                 wvtav.runJavaScript('document.getElementsByTagName("TEXTAREA")[3].value="'+app.initString+'"', function(result) {
                     //console.log('R001: '+result)
                     wvtav.runJavaScript('document.getElementsByTagName("TEXTAREA")[3].value', function(result2) {
-                       // console.log('R002: '+result2)
+                        // console.log('R002: '+result2)
                         if(result2!==app.initString){
                             restart()
                         }else{
@@ -382,6 +397,10 @@ ApplicationWindow {
         }
     }
 
+    ManSqliteData{
+        id: manSqliteData
+
+    }
     Shortcut{
         sequence: 'Esc'
         onActivated: {
@@ -472,6 +491,8 @@ ApplicationWindow {
             xSetMod.visible=true
             return
         }
+        manSqliteData.setUser(user)
+        //manSqliteData.setVoice(user, 2)
         wv.url=app.url
         if(launch){
             Qt.openUrlExternally(app.url)
@@ -504,11 +525,16 @@ ApplicationWindow {
         }
     }
 
-    function speakMp3(text){
+    function speakMp3(user, text){
         console.log("Convirtiendo a MP3: "+text)
+        let indexLang=manSqliteData.getVoice(user)
+        if(indexLang===-1){
+            indexLang=0
+            manSqliteData.setUser(user)
+        }
         let nText=(''+text).replace(/\n/g, '')
         console.log("Convirtiendo a MP3: "+text)
-        wvtav.runJavaScript('document.getElementById(\'selectlang_lbm\').value="'+app.arrayLanguages[0]+'";', function(resultSelectLanguage) {
+        wvtav.runJavaScript('document.getElementById(\'selectlang_lbm\').value="'+app.arrayLanguages[indexLang]+'";', function(resultSelectLanguage) {
             wvtav.runJavaScript('document.getElementsByTagName("TEXTAREA").length', function(result) {
                 console.log('Resultado 1: '+result)
                 wvtav.runJavaScript('var ta=document.getElementsByTagName("TEXTAREA")[3]; ta.value="'+nText+'"; ta.autofocus=true; ta.focus();', function(result2) {
