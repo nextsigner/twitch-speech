@@ -1,7 +1,9 @@
 import QtQuick 2.7
 import QtQuick.Controls 2.0
+import QtMultimedia 5.12
 import QtWebEngine 1.5
 import QtQuick.Window 2.2
+import Qt.labs.settings 1.1
 ApplicationWindow {
     id: app
     visible: Qt.platform.os!=='android'?false:true
@@ -9,11 +11,11 @@ ApplicationWindow {
     width: dev?xApp.width:xStart.width
     height: dev?xApp.height:xStart.height
     flags: Qt.Window | Qt.FramelessWindowHint
-    x:Screen.width*0.5-width*0.5
-    y:Screen.height*0.5-height*0.5
+    x:apps.x//Screen.width*0.5-width*0.5
+    y:apps.y//Screen.height*0.5-height*0.5
     color: 'transparent'
 
-    property bool dev: false
+    property bool dev: true
 
     property string moduleName: 'twitch-speech'
     property int fs: app.width*0.035
@@ -33,6 +35,19 @@ ApplicationWindow {
     property var arrayLanguages: ["es-ES_EnriqueVoice", "es-ES_EnriqueV3Voice", "es-ES_LauraVoice", "es-ES_LauraV3Voice", "es-LA_SofiaVoice","es-LA_SofiaV3Voice","es-US_SofiaVoice","es-US_SofiaV3Voice" ]
 
     FontLoader{name: "FontAwesome"; source: "qrc:/fontawesome-webfont.ttf"}
+    Settings{
+        id: apps
+        fileName: moduleName+'.cfg'
+
+        property int x: 0
+        property int y: 0
+        property int w: 100
+        property int h: 100
+
+        property int segundosEntreAudioYAudio: 3
+        property int msLetra: 100
+        property int rangoPermitido: 100
+    }
     USettings{
         id: unikSettings
         url:app.moduleName+'.cfg'
@@ -51,7 +66,9 @@ ApplicationWindow {
             app.c4=ct[3]
         }
     }
-
+    MediaPlayer{
+        id: mp
+    }
     Item{
         id: xApp
         width: Screen.width
@@ -65,24 +82,13 @@ ApplicationWindow {
                 color: '#ff8833'
                 WebEngineView{
                     id: wvtav
-                    //url: 'http://texttospeechrobot.com/tts/es/texto-a-voz/'
-
                     anchors.fill: parent
+                    opacity: 0.0
                     property QtObject defaultProfile: WebEngineProfile {
                         id: wep
-                        //httpUserAgent: raiz.userAgent
-                        //useForGlobalCertificateVerification: true
                         httpUserAgent: 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
                         storageName: "Default"
                         persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
-                        //persistentStoragePath: '.'
-                        //httpCacheType: WebEngineProfile.MemoryHttpCache
-                        onDownloadRequested: {
-                            app.onDLR(download)
-                        }
-                        onDownloadFinished: {
-
-                        }
                     }
                     settings.javascriptCanOpenWindows: true
                     settings.allowRunningInsecureContent: false
@@ -93,6 +99,81 @@ ApplicationWindow {
                     onLoadProgressChanged:{
                         if(loadProgress===100){
                             tInit.start()
+                        }
+                    }
+                }
+                ListView{
+                    id: lv
+                    width: parent.width
+                    height: parent.height-xStart.height
+                    anchors.bottom: parent.bottom
+                    model: lm
+                    delegate: del
+                    rotation: 180
+                    Rectangle{
+                        anchors.fill: parent
+                        color: 'green'
+                        opacity: 0.65
+                        z: parent.z-1
+                    }
+                    ListModel{
+                        id: lm
+                        function addMsg(u, m){
+                            return{
+                                user: u,
+                                msg:m,
+                                dur: -1
+                            }
+                        }
+                    }
+                    Component{
+                        id: del
+                        Rectangle{
+                            id: xMsg
+                            property int ms: 0
+                            width: lv.width
+                            height: txtMsg.contentHeight+10
+                            border.width: 2
+                            border.color: 'red'
+                            rotation: 180
+                            function setStatus(){
+                                //xMsg.color='#ff8833'
+                                app.speakMp3(user, msg)
+                                let msWord=apps.msLetra*(''+msg).length
+                                timerRemove.interval=apps.segundosEntreAudioYAudio*1000+msWord
+                                timerRemove.start()
+                            }
+                            UText {
+                                id: txtMsg
+                                text: msg
+                                color: 'black'
+                                font.pixelSize: app.fs*0.5
+                                width: parent.width-app.fs
+                                wrapMode: Text.WordWrap
+                                anchors.centerIn: parent
+                            }
+                            Timer{
+                                id: timerRemove
+                                running: false
+                                repeat: false
+                                //interval: 99999999
+                                onTriggered: {
+                                    //app.uMp3Duration=0
+                                    lm.remove(0)
+                                }
+                            }
+                            Timer{
+                                id: tctrl
+                                running: true
+                                repeat: true
+                                interval: 100
+                                onTriggered: {
+                                    if(index===0){
+                                        stop()
+                                        xMsg.setStatus()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -145,12 +226,11 @@ ApplicationWindow {
         //UWarnings{id: uWarnings}
 
 
-
-    }
+        }
     Rectangle{
         id: xStart
-        width: 100
-        height: 100
+        width: apps.w
+        height: apps.h
         color: 'blue'
         Boton{
             id: btn1
@@ -163,6 +243,48 @@ ApplicationWindow {
         }
         //opacity: 0.5
         //anchors.bottom: parent.bottom
+        MouseArea{
+            id: max
+            property variant clickPos: "1,1"
+            property bool presionado: false
+            enabled: false
+            anchors.fill: parent
+            onReleased: {
+                presionado = false
+                apps.x = app.x
+                apps.y = app.y
+            }
+            onPressed: {
+                presionado = true
+                clickPos  = Qt.point(mouse.x,mouse.y)
+            }
+            onPositionChanged: {
+                if(presionado){
+                    var delta = Qt.point(mouse.x-clickPos.x, mouse.y-clickPos.y)
+                    app.x += delta.x;
+                    app.y += delta.y;
+                }
+            }
+            onWheel: {
+                if (wheel.modifiers & Qt.ControlModifier) {
+                    if(app.width<150){
+                        return
+                    }
+                    app.width += wheel.angleDelta.y / 120
+                    app.height = app.width
+                    //reloj.width = app.width
+                    //reloj.height = app.width
+                }
+                if(app.width<=149){
+                    app.width=151
+                    app.height = app.width
+                }
+                apps.x = app.x
+                apps.y = app.y
+                apps.w = app.width
+                apps.h = app.height
+            }
+        }
     }
     //    UText{
     //        text: 'Url: '+wv.url
@@ -174,7 +296,7 @@ ApplicationWindow {
     property bool iniciado: false
     property int vInit: 0
     property string uMsg: ''
-    property real uMp3Duration: 0.0
+    property int uMp3Duration: 0
     property string initString: 'iniciando audio del chat'
     Timer{
         id:tCheck
@@ -182,6 +304,7 @@ ApplicationWindow {
         repeat: true
         interval: 200
         onTriggered: {
+            var m0
             wv.runJavaScript('document.getElementById("root").innerText', function(result) {
                 if(result!==app.uHtml){
                     let d0=result//.replace(/\n/g, 'XXXXX')
@@ -197,23 +320,20 @@ ApplicationWindow {
                         let d7=d0.split(':')
                         let d8=d7[d7.length-2].split('\n')
                         let usuario=''+d8[d8.length-1].replace('chat\n', '')
-                        let msg=usuario+' dice '+mensaje
+                        let msg=(''+usuario+' dice '+mensaje).replace(/\n/g, '')
                         let user=''+usuario.replace(/\n/g, '' )
 
-                        if(isVM(msg)&&(''+msg).indexOf('chat.whatsapp.com')<0&&(''+mensaje).indexOf('!')!==1){
-                            console.log('u['+usuario+'] '+app.ue.toString())
+                        if(isVM(msg)&&(''+mensaje).indexOf('!')!==1){
+                            //console.log('u['+usuario+'] '+app.ue.toString())
                             if(app.ue.indexOf(usuario)>=0 || app.allSpeak){
-                                //                                if(Qt.platform.os==='windows'){
-                                //                                    unik.speak(msg)
-                                //                                }else{
-                                console.log(msg)
                                 if(user.indexOf('itomyy17')>=0){
                                     unik.speak(msg)
                                 }else{
-                                    speakMp3(user, msg)
+                                    //speakMp3(user, msg)
+                                    if(manSqliteData.getRango(user)<=apps.rangoPermitido){
+                                        lm.append(lm.addMsg(user, msg))
+                                    }
                                 }
-                                //}
-
                             }
                         }
 
@@ -221,7 +341,7 @@ ApplicationWindow {
                         if(isVM(msg)){
                             //Set all speak
                             if((''+mensaje).indexOf('!voz=')===1){
-                                let m0=(''+mensaje).split('!voz=')
+                                m0=(''+mensaje).split('!voz=')
                                 let voice=parseInt(m0[1])
                                 if(voice<=app.arrayLanguages.length-1){
                                     manSqliteData.setVoice(user, voice)
@@ -230,12 +350,17 @@ ApplicationWindow {
                         }
 
                         //Comandos de Administradores
-                        if(isVM(msg)&&(''+msg).indexOf('chat.whatsapp.com')<0&&(''+mensaje).indexOf('!')===1&&app.mods.indexOf(user)>=0){
-                            let m0=mensaje.split('!')
+                        //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
+                        if(isVM(msg)&&(''+mensaje).indexOf('!')===1&&app.mods.indexOf(user)>=0){
+                            m0=mensaje.split('!')
                             let m1=m0[1].split(' ')
-                            let paramUser=m1[1].replace(/\n/g, '' )
+                            let paramUser=''
+                            if(m1.length>=2){
+                                paramUser=m1[1].replace(/\n/g, '' )
+                            }
                             //Set all speak
-                            if(m1[0].length>1&&m1[0]==='alls'){
+                            //if(m1[0].length>1&&m1[0]==='alls'){
+                            if((''+mensaje).indexOf('!alls')===1){
                                 app.allSpeak=!app.allSpeak
                                 if(app.allSpeak){
                                     unik.speak("Ahora se oirán todos los mensajes del chat.")
@@ -261,6 +386,42 @@ ApplicationWindow {
                                     unik.speak(paramUser+' no estaba agregado.')
                                 }
                             }
+
+                            //Set DEV
+                            if((''+mensaje).indexOf('!dev')===1){
+                                m0=(''+mensaje).split('!dev')
+                                app.dev=!app.dev
+                            }
+
+                            //Set Rango Mínimo de Audio Mensaje
+                            if((''+mensaje).indexOf('!setRangoMinimoDeAudio=')===1){
+                                m0=(''+mensaje).split('!setRangoMinimoDeAudio=')
+                                let value=parseInt(m0[1])
+                                if(value<=100){
+                                    apps.rangoPermitido=value
+                                    unik.speak('Se ha cambiado el rango mínimo de audio de mensajes del chat.')
+                                }
+                            }
+
+                            //Set Segundos pausa Audio Mensaje
+                            if((''+mensaje).indexOf('!ss=')===1){
+                                m0=(''+mensaje).split('!ss=')
+                                let value=parseInt(m0[1])
+                                if(value<=30){
+                                    apps.segundosEntreAudioYAudio=value
+                                    unik.speak('Se ha cambiado tiempo de espera de cola de mensajes del chat.')
+                                }
+                            }
+                            //Set Segundos pausa Audio Mensaje
+                            if((''+mensaje).indexOf('!ssl=')===1){
+                                m0=(''+mensaje).split('!ssl=')
+                                let value=parseInt(m0[1])
+                                if(value<=1000){
+                                    apps.msLetra=value
+                                    unik.speak('Se ha cambiado el valor de milisegundos de cada letra del chat para voz.')
+                                }
+                            }
+
                             //Set volume speak
                             if(m1[0].length>1&&m1[0]==='sv'){
                                 if(app.ue.indexOf(paramUser)>=0){
@@ -269,6 +430,19 @@ ApplicationWindow {
                                     unik.speak('El comando no se ha aplicado. Falta el valor del volumen.')
                                 }
                             }
+
+
+                            //Rangos
+                            //Set Segundos pausa Audio Mensaje
+                            if((''+mensaje).indexOf('!setRango=')===1){
+                                m0=(''+mensaje).split('!setRango=')
+                                let value=parseInt(m0[1])
+                                if(value<=100){
+                                    manSqliteData.setRango(paramUser, value)
+                                    unik.speak('Se ha cambiado el rango de '+paramUser+' a '+value)
+                                }
+                            }
+
                             app.uHtml=result
                             return
                         }
@@ -355,51 +529,45 @@ ApplicationWindow {
     }
     Timer{
         id: tGetMp3Duration
-        running: true
+        running: false
         repeat: true
         interval: 250
         onTriggered: {
-            wvtav.focus=true
+            //wvtav.focus=true
             running=false
             wvtav.runJavaScript('document.getElementById(\'audioElement1\').duration', function(result) {
                 //wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].duration', function(result) {
+                //restart()
+                //                if(result===undefined){
+                //                    console.log('NO Resultado Duration: '+result)
+                //                    //restart()
+                //                    running=true
+                //                    return
+                //                }
+                //console.log('Resultado Duration: '+result)
 
-                if(result===undefined){
-                    console.log('NO Resultado Duration: '+result)
-                    restart()
-                    //running=true
-                    return
-                }
-                console.log('Resultado Duration: '+result)
-                /*if(!app.iniciado&&app.vInit<10){
-                    wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].play()', function(result4) {
-                        //wvtav.runJavaScript('document.getElementById(\'audioElement1\').play()', function(result4) {
-                        //console.log('Resultado Play: '+result4)
-                        if(app.vInit<=10){
-                            app.vInit++
-                        }else{
-                            app.iniciado=true
-                        }
-                        running=true
-                    });
-                }else{
-                    running=true
-                }*/
-                if(app.uMp3Duration===result){
-                    return
-                }
+                //                if(app.uMp3Duration===result){
+                //                    running=true
+                //                    return
+                //                }
                 //tInit2.stop()
-                app.uMp3Duration=result
+                //app.uMp3Duration=parseInt(result*1000)
+                if(result){
+                    lv.children[0].children[0].setStatus(parseInt(result*1000))
+                }
                 //lm.get(0).dur=result*1000
-                //console.log('Duration: '+result)
+                running=true
+                console.log('Duration: '+result)
 
             });
         }
     }
-
     ManSqliteData{
         id: manSqliteData
-
+        onUsuarioNuevo: {
+            mp.source='./sounds/ring_1.mp3'
+            mp.play()
+        }
     }
     Shortcut{
         sequence: 'Esc'
@@ -414,10 +582,16 @@ ApplicationWindow {
     Shortcut{
         sequence: 'Ctrl+a'
         onActivated: {
+            console.log('largo de lista: '+lv.children[0].children[0].objectName)
+            lv.children[0].children[0].setStatus()
+            //            if(lv.children[0].children.length>0){
+            //                lv.children[0].children[0].setStatus()
+            //            }
+
             //let element = document.getElementById(id)
-            wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].play()', function(result4) {
-                console.log('Resultado Play: '+result4)
-            });
+            //            wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].play()', function(result4) {
+            //                console.log('Resultado Play: '+result4)
+            //            });
             /*wvtav.runJavaScript('document.getElementById(\'tab3\').checked=true;', function(result) {
                 console.log('Resultado RADIO: '+result)
                 wvtav.runJavaScript('document.getElementsByTagName("LABEL")[2].click();', function(result2) {
@@ -447,6 +621,7 @@ ApplicationWindow {
         }
     }
     Component.onCompleted: {
+        //unik.debugLog=false
         unik.setTtsVolume(100)
         if(Qt.platform.os==='linux'){
             let m0=(''+ttsLocales).split(',')
@@ -526,7 +701,7 @@ ApplicationWindow {
     }
 
     function speakMp3(user, text){
-        console.log("Convirtiendo a MP3: "+text)
+        //console.log("Convirtiendo a MP3: "+text)
         let indexLang=manSqliteData.getVoice(user)
         if(indexLang===-1){
             indexLang=0
