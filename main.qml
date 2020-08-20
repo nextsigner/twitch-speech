@@ -8,13 +8,15 @@ ApplicationWindow {
     id: app
     visible: Qt.platform.os!=='android'?false:true
     visibility: Qt.platform.os!=='android'?'Windowed':'Maximized'
+    title: 'Twitch-Speech'
     width: dev?xApp.width:xStart.width
     height: dev?xApp.height:xStart.height
-    flags: Qt.Window | Qt.FramelessWindowHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
     x:apps.x//Screen.width*0.5-width*0.5
     y:apps.y//Screen.height*0.5-height*0.5
     color: 'transparent'
 
+    property bool sacudido: false
     property bool dev: true
 
     property string moduleName: 'twitch-speech'
@@ -33,7 +35,17 @@ ApplicationWindow {
     property bool allSpeak: true
 
     property var arrayLanguages: ["es-ES_EnriqueVoice", "es-ES_EnriqueV3Voice", "es-ES_LauraVoice", "es-ES_LauraV3Voice", "es-LA_SofiaVoice","es-LA_SofiaV3Voice","es-US_SofiaVoice","es-US_SofiaV3Voice" ]
-
+    onActiveChanged: {
+        //unik.speak('Activo: '+active)
+        if(active){
+            sacudido=!sacudido
+        }
+        if(sacudido){
+            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+        }else{
+            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        }
+    }
     FontLoader{name: "FontAwesome"; source: "qrc:/fontawesome-webfont.ttf"}
     Settings{
         id: apps
@@ -73,35 +85,10 @@ ApplicationWindow {
         id: xApp
         width: Screen.width
         height: Screen.desktopAvailableHeight
-        //anchors.centerIn: parent
         Row{
-            //Url texto a voz http://texttospeechrobot.com/tts/es/texto-a-voz/
-            Rectangle{
+            Item{
                 width: xApp.width*0.8
                 height: xApp.height
-                color: '#ff8833'
-                WebEngineView{
-                    id: wvtav
-                    anchors.fill: parent
-                    opacity: 0.0
-                    property QtObject defaultProfile: WebEngineProfile {
-                        id: wep
-                        httpUserAgent: 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
-                        storageName: "Default"
-                        persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
-                    }
-                    settings.javascriptCanOpenWindows: true
-                    settings.allowRunningInsecureContent: false
-                    //settings.hyperlinkAuditingEnabled:  true
-                    settings.javascriptCanAccessClipboard: true
-                    settings.localStorageEnabled: true
-                    settings.javascriptEnabled: true
-                    onLoadProgressChanged:{
-                        if(loadProgress===100){
-                            tInit.start()
-                        }
-                    }
-                }
                 ListView{
                     id: lv
                     width: parent.width
@@ -178,10 +165,9 @@ ApplicationWindow {
                     }
                 }
             }
-            Rectangle{
+            Item{
                 width: xApp.width*0.2
                 height: xApp.height
-                color: '#ff8833'
                 WebEngineView{
                     id: wv
                     anchors.fill: parent
@@ -226,7 +212,36 @@ ApplicationWindow {
         //UWarnings{id: uWarnings}
 
 
+    }
+    Item{
+        width: xApp.width*0.8
+        height: xApp.height
+        anchors.right: xStart.right
+        anchors.bottom: xStart.bottom
+        WebEngineView{
+            id: wvtav
+            anchors.fill: parent
+            opacity: 0.0
+            //visible:false
+            property QtObject defaultProfile: WebEngineProfile {
+                id: wep
+                httpUserAgent: 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
+                storageName: "Default"
+                persistentCookiesPolicy: WebEngineProfile.ForcePersistentCookies
+            }
+            settings.javascriptCanOpenWindows: true
+            settings.allowRunningInsecureContent: false
+            //settings.hyperlinkAuditingEnabled:  true
+            settings.javascriptCanAccessClipboard: true
+            settings.localStorageEnabled: true
+            settings.javascriptEnabled: true
+            onLoadProgressChanged:{
+                if(loadProgress===100){
+                    tInit.start()
+                }
+            }
         }
+    }
     Rectangle{
         id: xStart
         width: apps.w
@@ -332,6 +347,9 @@ ApplicationWindow {
                                     //speakMp3(user, msg)
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
                                         lm.append(lm.addMsg(user, msg))
+                                        manSqliteData.setMsg(user, msg)
+                                        app.uHtml=result
+                                        return
                                     }
                                 }
                             }
@@ -527,41 +545,43 @@ ApplicationWindow {
             });
         }
     }
-    Timer{
-        id: tGetMp3Duration
-        running: false
-        repeat: true
-        interval: 250
-        onTriggered: {
-            //wvtav.focus=true
-            running=false
-            wvtav.runJavaScript('document.getElementById(\'audioElement1\').duration', function(result) {
-                //wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].duration', function(result) {
-                //restart()
-                //                if(result===undefined){
-                //                    console.log('NO Resultado Duration: '+result)
-                //                    //restart()
-                //                    running=true
-                //                    return
-                //                }
-                //console.log('Resultado Duration: '+result)
 
-                //                if(app.uMp3Duration===result){
-                //                    running=true
-                //                    return
-                //                }
-                //tInit2.stop()
-                //app.uMp3Duration=parseInt(result*1000)
-                if(result){
-                    lv.children[0].children[0].setStatus(parseInt(result*1000))
-                }
-                //lm.get(0).dur=result*1000
-                running=true
-                console.log('Duration: '+result)
+    //    Timer{
+    //        id: tGetMp3Duration
+    //        running: false
+    //        repeat: true
+    //        interval: 250
+    //        onTriggered: {
+    //            //wvtav.focus=true
+    //            running=false
+    //            wvtav.runJavaScript('document.getElementById(\'audioElement1\').duration', function(result) {
+    //                //wvtav.runJavaScript('document.getElementsByTagName("AUDIO")[1].duration', function(result) {
+    //                //restart()
+    //                //                if(result===undefined){
+    //                //                    console.log('NO Resultado Duration: '+result)
+    //                //                    //restart()
+    //                //                    running=true
+    //                //                    return
+    //                //                }
+    //                //console.log('Resultado Duration: '+result)
 
-            });
-        }
-    }
+    //                //                if(app.uMp3Duration===result){
+    //                //                    running=true
+    //                //                    return
+    //                //                }
+    //                //tInit2.stop()
+    //                //app.uMp3Duration=parseInt(result*1000)
+    //                if(result){
+    //                    lv.children[0].children[0].setStatus(parseInt(result*1000))
+    //                }
+    //                //lm.get(0).dur=result*1000
+    //                running=true
+    //                console.log('Duration: '+result)
+
+    //            });
+    //        }
+    //    }
+
     ManSqliteData{
         id: manSqliteData
         onUsuarioNuevo: {
@@ -572,18 +592,20 @@ ApplicationWindow {
     Shortcut{
         sequence: 'Esc'
         onActivated: {
-            //            if(uLogView.visible){
-            //                uLogView.visible=false
-            //                return
-            //            }
             Qt.quit()
         }
     }
+
     Shortcut{
         sequence: 'Ctrl+a'
         onActivated: {
-            console.log('largo de lista: '+lv.children[0].children[0].objectName)
-            lv.children[0].children[0].setStatus()
+            //console.log('largo de lista: '+lv.children[0].children[0].objectName)
+            app.color='transparent'
+            wv.opacity=0.0
+            app.height=app.fs*6
+            app.y=Screen.height-app.height
+
+            //lv.children[0].children[0].setStatus()
             //            if(lv.children[0].children.length>0){
             //                lv.children[0].children[0].setStatus()
             //            }
