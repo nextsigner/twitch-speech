@@ -11,7 +11,7 @@ ApplicationWindow {
     title: 'Twitch-Speech'
     width: dev?xApp.width:xStart.width
     height: dev?xApp.height:xStart.height
-    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint// | Qt.WindowTransparentForInput
     x:apps.x//Screen.width*0.5-width*0.5
     y:apps.y//Screen.height*0.5-height*0.5
     color: 'transparent'
@@ -86,88 +86,17 @@ ApplicationWindow {
         width: Screen.width
         height: Screen.desktopAvailableHeight
         Row{
+            anchors.bottom: parent.bottom
             Item{
-                width: xApp.width*0.8
+                id: xLv0
+                width: xApp.width*0.5
                 height: xApp.height
-                ListView{
-                    id: lv
-                    width: parent.width
-                    height: parent.height-xStart.height
-                    anchors.bottom: parent.bottom
-                    model: lm
-                    delegate: del
-                    rotation: 180
-                    Rectangle{
-                        anchors.fill: parent
-                        color: 'green'
-                        opacity: 0.65
-                        z: parent.z-1
-                    }
-                    ListModel{
-                        id: lm
-                        function addMsg(u, m){
-                            return{
-                                user: u,
-                                msg:m,
-                                dur: -1
-                            }
-                        }
-                    }
-                    Component{
-                        id: del
-                        Rectangle{
-                            id: xMsg
-                            property int ms: 0
-                            width: lv.width
-                            height: txtMsg.contentHeight+10
-                            border.width: 2
-                            border.color: 'red'
-                            rotation: 180
-                            function setStatus(){
-                                //xMsg.color='#ff8833'
-                                app.speakMp3(user, msg)
-                                let msWord=apps.msLetra*(''+msg).length
-                                timerRemove.interval=apps.segundosEntreAudioYAudio*1000+msWord
-                                timerRemove.start()
-                            }
-                            UText {
-                                id: txtMsg
-                                text: msg
-                                color: 'black'
-                                font.pixelSize: app.fs*0.5
-                                width: parent.width-app.fs
-                                wrapMode: Text.WordWrap
-                                anchors.centerIn: parent
-                            }
-                            Timer{
-                                id: timerRemove
-                                running: false
-                                repeat: false
-                                //interval: 99999999
-                                onTriggered: {
-                                    //app.uMp3Duration=0
-                                    lm.remove(0)
-                                }
-                            }
-                            Timer{
-                                id: tctrl
-                                running: true
-                                repeat: true
-                                interval: 100
-                                onTriggered: {
-                                    if(index===0){
-                                        stop()
-                                        xMsg.setStatus()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                //anchors.bottom: parent.bottom
             }
             Item{
                 width: xApp.width*0.2
                 height: xApp.height
+                anchors.bottom: parent.bottom
                 WebEngineView{
                     id: wv
                     anchors.fill: parent
@@ -301,6 +230,91 @@ ApplicationWindow {
             }
         }
     }
+    Item{
+        id: xLv
+        width: xApp.width
+        height: xApp.height
+        anchors.bottom: parent.bottom
+        //anchors.top: xStart.bottom
+        ListView{
+            id: lv
+            width: parent.width
+            height: parent.height//-xStart.height
+            anchors.bottom: parent.bottom
+            model: lm
+            delegate: del
+            rotation: 180
+            Rectangle{
+                anchors.fill: parent
+                color: 'green'
+                opacity: 0.5
+                z: parent.z-1
+                border.width: app.flags===Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint?4:1
+                border.color: 'red'
+            }
+            ListModel{
+                id: lm
+                function addMsg(u, m){
+                    return{
+                        user: u,
+                        msg:m,
+                        dur: -1
+                    }
+                }
+            }
+            Component{
+                id: del
+                Rectangle{
+                    id: xMsg
+                    property int ms: 0
+                    width: lv.width
+                    height: txtMsg.contentHeight+10
+                    border.width: 2
+                    border.color: 'red'
+                    rotation: 180
+                    function setStatus(){
+                        //xMsg.color='#ff8833'
+                        app.speakMp3(user, msg)
+                        let msWord=apps.msLetra*(''+msg).length
+                        timerRemove.interval=apps.segundosEntreAudioYAudio*1000+msWord
+                        timerRemove.start()
+                    }
+                    UText {
+                        id: txtMsg
+                        text: msg
+                        color: 'black'
+                        font.pixelSize: app.fs*0.5
+                        width: parent.width-app.fs
+                        wrapMode: Text.WordWrap
+                        anchors.centerIn: parent
+                    }
+                    Timer{
+                        id: timerRemove
+                        running: false
+                        repeat: false
+                        //interval: 99999999
+                        onTriggered: {
+                            //app.uMp3Duration=0
+                            lm.remove(0)
+                        }
+                    }
+                    Timer{
+                        id: tctrl
+                        running: true
+                        repeat: true
+                        interval: 100
+                        onTriggered: {
+                            if(index===0){
+                                stop()
+                                xMsg.setStatus()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     //    UText{
     //        text: 'Url: '+wv.url
     //        width: xApp.width
@@ -319,6 +333,7 @@ ApplicationWindow {
         repeat: true
         interval: 200
         onTriggered: {
+            //running=false
             var m0
             wv.runJavaScript('document.getElementById("root").innerText', function(result) {
                 if(result!==app.uHtml){
@@ -337,18 +352,28 @@ ApplicationWindow {
                         let usuario=''+d8[d8.length-1].replace('chat\n', '')
                         let msg=(''+usuario+' dice '+mensaje).replace(/\n/g, '')
                         let user=''+usuario.replace(/\n/g, '' )
+                        if(msg===app.uMsg){
+                            app.uHtml=result
+                            running=true
+                            return
+                        }
+                        app.uMsg=msg
 
                         if(isVM(msg)&&(''+mensaje).indexOf('!')!==1){
                             //console.log('u['+usuario+'] '+app.ue.toString())
                             if(app.ue.indexOf(usuario)>=0 || app.allSpeak){
                                 if(user.indexOf('itomyy17')>=0){
                                     unik.speak(msg)
+                                    app.uHtml=result
+                                    running=true
+                                    return
                                 }else{
                                     //speakMp3(user, msg)
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
                                         lm.append(lm.addMsg(user, msg))
                                         manSqliteData.setMsg(user, msg)
                                         app.uHtml=result
+                                        running=true
                                         return
                                     }
                                 }
@@ -478,6 +503,7 @@ ApplicationWindow {
                     }
                 }
                 app.uHtml=result
+                running=true
                 //uLogView.showLog(result)
             });
         }
@@ -546,6 +572,33 @@ ApplicationWindow {
         }
     }
 
+    Timer{
+        id: tSetAppHeight
+        running: true//wv.opacity===0.0
+        repeat: true
+        interval: 250
+        onTriggered: {
+            if(wv.opacity===0.0){
+                //app.color='transparent'
+                if(lm.count>=1){
+                    xLv.height=lv.children[0].children[0].height//+app.fs*3
+                }else{
+                    xLv.height=app.fs//*3
+                }
+                //xLv.height=app.height
+                //app.y=Screen.height-app.height
+                xStart.visible=false
+            }else{
+                //app.color='white'
+                //app.height=Screen.desktopAvailableHeight//Screen.height
+                //app.y=Screen.height-Screen.desktopAvailableHeight
+                xStart.visible=true
+                xLv.height=xApp.height*0.5//Screen.desktopAvailableHeight
+            }
+
+        }
+    }
+
     //    Timer{
     //        id: tGetMp3Duration
     //        running: false
@@ -600,10 +653,15 @@ ApplicationWindow {
         sequence: 'Ctrl+a'
         onActivated: {
             //console.log('largo de lista: '+lv.children[0].children[0].objectName)
-            app.color='transparent'
-            wv.opacity=0.0
-            app.height=app.fs*6
-            app.y=Screen.height-app.height
+            //app.color='transparent'
+            if(wv.opacity===1.0){
+                wv.opacity=0.0
+            }else{
+                wv.opacity=1.0
+            }
+            //            app.height=app.fs*6
+            //            app.y=Screen.height-app.height
+            //            xStart.visible=false
 
             //lv.children[0].children[0].setStatus()
             //            if(lv.children[0].children.length>0){
