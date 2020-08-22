@@ -243,7 +243,7 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
             model: lm
             delegate: del
-            rotation: 180
+            //rotation: 180
             Rectangle{
                 anchors.fill: parent
                 color: 'green'
@@ -271,7 +271,7 @@ ApplicationWindow {
                     height: txtMsg.contentHeight+10
                     border.width: 2
                     border.color: 'red'
-                    rotation: 180
+                    //rotation: 180
                     function setStatus(){
                         //xMsg.color='#ff8833'
                         app.speakMp3(user, msg)
