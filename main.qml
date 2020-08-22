@@ -412,6 +412,7 @@ ApplicationWindow {
                                 }else{
                                     unik.speak("Ahora solo algunos usuarios del chat se oirán.")
                                 }
+                                app.uMsg=''
                             }
                             //Add user speak
                             if(m1[0].length>1&&m1[0]==='as'){
@@ -421,6 +422,7 @@ ApplicationWindow {
                                 }else{
                                     unik.speak(paramUser+' ya estaba agregado.')
                                 }
+                                app.uMsg=''
                             }
                             //Remove user speak
                             if(m1[0].length>1&&m1[0]==='rs'){
@@ -430,12 +432,14 @@ ApplicationWindow {
                                 }else{
                                     unik.speak(paramUser+' no estaba agregado.')
                                 }
+                                app.uMsg=''
                             }
 
                             //Set DEV
                             if((''+mensaje).indexOf('!dev')===1){
                                 m0=(''+mensaje).split('!dev')
                                 app.dev=!app.dev
+                                app.uMsg=''
                             }
 
                             //Set Rango Mínimo de Audio Mensaje
@@ -446,6 +450,7 @@ ApplicationWindow {
                                     apps.rangoPermitido=value
                                     unik.speak('Se ha cambiado el rango mínimo de audio de mensajes del chat.')
                                 }
+                                app.uMsg=''
                             }
 
                             //Set Segundos pausa Audio Mensaje
@@ -456,6 +461,7 @@ ApplicationWindow {
                                     apps.segundosEntreAudioYAudio=value
                                     unik.speak('Se ha cambiado tiempo de espera de cola de mensajes del chat.')
                                 }
+                                app.uMsg=''
                             }
                             //Set Segundos pausa Audio Mensaje
                             if((''+mensaje).indexOf('!ssl=')===1){
@@ -465,6 +471,7 @@ ApplicationWindow {
                                     apps.msLetra=value
                                     unik.speak('Se ha cambiado el valor de milisegundos de cada letra del chat para voz.')
                                 }
+                                app.uMsg=''
                             }
 
                             //Set volume speak
@@ -474,6 +481,7 @@ ApplicationWindow {
                                 }else{
                                     unik.speak('El comando no se ha aplicado. Falta el valor del volumen.')
                                 }
+                                app.uMsg=''
                             }
 
 
@@ -486,6 +494,7 @@ ApplicationWindow {
                                     manSqliteData.setRango(paramUser, value)
                                     unik.speak('Se ha cambiado el rango de '+paramUser+' a '+value)
                                 }
+                                app.uMsg=''
                             }
 
                             app.uHtml=result
@@ -493,12 +502,15 @@ ApplicationWindow {
                         }
                         if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('show')>=0){
                             app.visible=true
+                            app.uMsg=''
                         }
                         if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('hide')>=0){
                             app.visible=false
+                            app.uMsg=''
                         }
                         if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('launch')>=0){
                             Qt.openUrlExternally(app.url)
+                            app.uMsg=''
                         }
                         app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
                         app.flags = Qt.Window | Qt.FramelessWindowHint
@@ -763,6 +775,10 @@ ApplicationWindow {
         if(m.indexOf(s3)>=0)return false;
         let s4='Podes enviar audios por whatsapp'
         if(m.indexOf(s4)>=0)return false;
+        let s5='https://'
+        if(m.indexOf(s5)>=0)return false;
+        let s6='http://'
+        if(m.indexOf(s6)>=0)return false;
         return true
     }
     function setDesktopIcon(params){
