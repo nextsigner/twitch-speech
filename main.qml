@@ -249,6 +249,7 @@ ApplicationWindow {
                 color: 'green'
                 opacity: 0.5
                 z: parent.z-1
+                visible: false
                 border.width: app.flags===Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint?4:1
                 border.color: 'red'
             }
@@ -264,20 +265,21 @@ ApplicationWindow {
             }
             Component{
                 id: del
-                Rectangle{
+                Item{
                     id: xMsg
                     property int ms: 0
                     width: lv.width
                     height: txtMsg.contentHeight+10
-                    border.width: 2
-                    border.color: 'red'
-                    //rotation: 180
                     function setStatus(){
                         //xMsg.color='#ff8833'
                         app.speakMp3(user, msg)
                         let msWord=apps.msLetra*(''+msg).length
                         timerRemove.interval=apps.segundosEntreAudioYAudio*1000+msWord
                         timerRemove.start()
+                    }
+                    Rectangle{
+                        anchors.fill: parent
+                        opacity: 0.5
                     }
                     UText {
                         id: txtMsg
