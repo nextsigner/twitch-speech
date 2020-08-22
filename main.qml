@@ -404,8 +404,8 @@ ApplicationWindow {
                                 }
                                 //Clear xContainer
                                 if((''+msg).indexOf('!cc')===0){
+                                    unik.speak('Limpiando la pantalla. '+xContainer.children.length+' objetos eliminados.')
                                     app.clearContainer()
-                                    unik.speak('Limpiando la pantalla.')
                                 }
                             }
 
@@ -420,10 +420,10 @@ ApplicationWindow {
                                 }
                             }
                             //Add Qml Code
-                            if(isVM(msg)&&(''+msg).indexOf('!script=')===0){
+                            if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
                                 unik.speak('Preparando script')
-                                m0=(''+msg).split('!script=')
-                                let value=m0[1]
+                                m0=(''+msg).split('!s=')
+                                let value=(''+m0[1]).replace(/\\n/g, '\n')
                                 console.log('Code: '+value)
                                 let comp = Qt.createQmlObject(value, xContainer, 'xcontainerusercode')
                             }
