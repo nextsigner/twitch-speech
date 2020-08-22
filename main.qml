@@ -344,203 +344,217 @@ ApplicationWindow {
         onTriggered: {
             //running=false
             var m0
-            wv.runJavaScript('document.getElementById("root").innerText', function(result) {
-                if(result!==app.uHtml){
-                    let d0=result//.replace(/\n/g, 'XXXXX')
-                    app.uHtml=result
-                    if(d0.indexOf(':')>0){
-                        let d1=d0.split(':')
-                        let d2=d1[d1.length-1]
-                        let d3=d2.split('Enviar')
-                        let mensaje = d3[0]
+            var user
+            var msg
+            wv.runJavaScript('document.getElementsByTagName("span").length', function(result0) {
+                     //console.log('-----------------------------------111>\n\n\n\n'+result0)
+                    wv.runJavaScript('function ret(){var aaa=document.getElementsByTagName("span")['+parseInt(result0 -6)+'].innerText; var aaa2=document.getElementsByTagName("span")['+parseInt(result0 -4)+'].innerText; return aaa+"-----"+aaa2;} ret()', function(result) {
+                        if(result!==app.uHtml){
+                            if(result.indexOf('-----')<0){
+                                running=true
+                                return
+                            }
+                            let d0=''+result
+                            let d1=d0.split('-----')
+                            user=''+d1[0]
+                            msg=''+d1[1]
+                            let cadena=user+' dice '+msg
+                            if(cadena===app.uMsg){
+                                app.uHtml=result
+                                running=true
+                                return
+                            }
+                            app.uMsg=cadena
+                            //console.log('Voz:::::::'+(''+msg).indexOf('!voz='))
 
-                        let d5=d0.split('\n\n')
-                        let d6=d5[d5.length-3]
-                        let d7=d0.split(':')
-                        let d8=d7[d7.length-2].split('\n')
-                        let usuario=''+d8[d8.length-1].replace('chat\n', '')
-                        let msg=(''+usuario+' dice '+mensaje).replace(/\n/g, '')
-                        let user=''+usuario.replace(/\n/g, '' )
-                        if(msg===app.uMsg){
-                            app.uHtml=result
-                            running=true
-                            return
-                        }
-                        app.uMsg=msg
-
-                        if(isVM(msg)&&(''+mensaje).indexOf('!')!==1){
-                            //console.log('u['+usuario+'] '+app.ue.toString())
-                            if(app.ue.indexOf(usuario)>=0 || app.allSpeak){
-                                if(user.indexOf('itomyy17')>=0){
-                                    unik.speak(msg)
-                                    app.uHtml=result
-                                    running=true
-                                    return
-                                }else{
-                                    //speakMp3(user, msg)
-                                    if(manSqliteData.getRango(user)<=apps.rangoPermitido){
-                                        lm.append(lm.addMsg(user, msg))
-                                        manSqliteData.setMsg(user, msg)
+                            if(isVM(msg)&&(''+msg).indexOf('!')!==0){
+                                //console.log('u['+usuario+'] '+app.ue.toString())
+                                if(app.ue.indexOf(user)>=0 || app.allSpeak){
+                                    if(user.indexOf('itomyy17')>=0){
+                                        unik.speak(cadena)
                                         app.uHtml=result
                                         running=true
                                         return
+                                    }else{
+                                        //speakMp3(user, msg)
+                                        if(manSqliteData.getRango(user)<=apps.rangoPermitido){
+                                            lm.append(lm.addMsg(user, cadena))
+                                            manSqliteData.setMsg(user, msg)
+                                            app.uHtml=result
+                                            running=true
+                                            return
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        //Comandos de Usuarios
-                        if(isVM(msg)){
+                            //Comandos de Twitch Streamer
+                            console.log('User:['+user+'] ['+app.user+']')
+                            //Qt.quit()
+                            if(isVM(msg)&&(''+msg).indexOf('!')===0&&user===app.user){
+                                m0=msg.split('!')
+                                let m1=m0[1].split(' ')
+                                let paramUser=''
+                                if(m1.length>=2){
+                                    paramUser=m1[1].replace(/\n/g, '' )
+                                }
+                                //Quit
+                                if((''+msg).indexOf('!q')===0){
+                                    Qt.quit()
+                                }
+                                //Clear xContainer
+                                if((''+msg).indexOf('!cc')===0){
+                                    app.clearContainer()
+                                    unik.speak('Limpiando la pantalla.')
+                                }
+                            }
+
+
+                            //Comandos de Usuarios
                             //Set all speak
-                            if((''+mensaje).indexOf('!voz=')===1){
-                                m0=(''+mensaje).split('!voz=')
+                            if(isVM(msg)&&(''+msg).indexOf('!voz=')===0){
+                                m0=(''+msg).split('!voz=')
                                 let voice=parseInt(m0[1])
                                 if(voice<=app.arrayLanguages.length-1){
                                     manSqliteData.setVoice(user, voice)
                                 }
                             }
+                            //Add Qml Code
+                            if(isVM(msg)&&(''+msg).indexOf('!script=')===0){
+                                unik.speak('Preparando script')
+                                m0=(''+msg).split('!script=')
+                                let value=m0[1]
+                                console.log('Code: '+value)
+                                let comp = Qt.createQmlObject(value, xContainer, 'xcontainerusercode')
+                            }
+
+                            //Comandos de Administradores
+                            //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
+                            if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
+                                m0=msg.split('!')
+                                m1=m0[1].split(' ')
+                                paramUser=''
+                                if(m1.length>=2){
+                                    paramUser=m1[1].replace(/\n/g, '' )
+                                }
+                                //Set all speak
+                                //if(m1[0].length>1&&m1[0]==='alls'){
+                                if((''+msg).indexOf('!alls')===1){
+                                    app.allSpeak=!app.allSpeak
+                                    if(app.allSpeak){
+                                        unik.speak("Ahora se oirán todos los mensajes del chat.")
+                                    }else{
+                                        unik.speak("Ahora solo algunos usuarios del chat se oirán.")
+                                    }
+                                    app.uMsg=''
+                                }
+                                //Add user speak
+                                if(m1[0].length>1&&m1[0]==='as'){
+                                    if(app.ue.indexOf(paramUser)<0){
+                                        unik.speak("Se agrega para hablar a "+paramUser)
+                                        app.ue.push(paramUser)
+                                    }else{
+                                        unik.speak(paramUser+' ya estaba agregado.')
+                                    }
+                                    app.uMsg=''
+                                }
+                                //Remove user speak
+                                if(m1[0].length>1&&m1[0]==='rs'){
+                                    if(app.ue.indexOf(paramUser)>=0){
+                                        unik.speak("Se quita para hablar a "+paramUser)
+                                        app.ue.pop(paramUser)
+                                    }else{
+                                        unik.speak(paramUser+' no estaba agregado.')
+                                    }
+                                    app.uMsg=''
+                                }
+
+                                //Set DEV
+                                if((''+msg).indexOf('!dev')===1){
+                                    m0=(''+msg).split('!dev')
+                                    app.dev=!app.dev
+                                    app.uMsg=''
+                                }
+
+                                //Set Rango Mínimo de Audio Mensaje
+                                if((''+msg).indexOf('!setRangoMinimoDeAudio=')===1){
+                                    m0=(''+msg).split('!setRangoMinimoDeAudio=')
+                                    let value=parseInt(m0[1])
+                                    if(value<=100){
+                                        apps.rangoPermitido=value
+                                        unik.speak('Se ha cambiado el rango mínimo de audio de mensajes del chat.')
+                                    }
+                                    app.uMsg=''
+                                }
+
+                                //Set Segundos pausa Audio Mensaje
+                                if((''+msg).indexOf('!ss=')===1){
+                                    m0=(''+msg).split('!ss=')
+                                    let value=parseInt(m0[1])
+                                    if(value<=30){
+                                        apps.segundosEntreAudioYAudio=value
+                                        unik.speak('Se ha cambiado tiempo de espera de cola de mensajes del chat.')
+                                    }
+                                    app.uMsg=''
+                                }
+                                //Set Segundos pausa Audio Mensaje
+                                if((''+msg).indexOf('!ssl=')===1){
+                                    m0=(''+msg).split('!ssl=')
+                                    let value=parseInt(m0[1])
+                                    if(value<=1000){
+                                        apps.msLetra=value
+                                        unik.speak('Se ha cambiado el valor de milisegundos de cada letra del chat para voz.')
+                                    }
+                                    app.uMsg=''
+                                }
+
+                                //Set volume speak
+                                if(m1[0].length>1&&m1[0]==='sv'){
+                                    if(app.ue.indexOf(paramUser)>=0){
+                                        unik.setTtsVolume(parseInt(paramUser))
+                                    }else{
+                                        unik.speak('El comando no se ha aplicado. Falta el valor del volumen.')
+                                    }
+                                    app.uMsg=''
+                                }
+
+
+                                //Rangos
+                                //Set Segundos pausa Audio Mensaje
+                                if((''+msg).indexOf('!setRango=')===1){
+                                    m0=(''+msg).split('!setRango=')
+                                    let value=parseInt(m0[1])
+                                    if(value<=100){
+                                        manSqliteData.setRango(paramUser, value)
+                                        unik.speak('Se ha cambiado el rango de '+paramUser+' a '+value)
+                                    }
+                                    app.uMsg=''
+                                }
+
+                                app.uHtml=result
+                                return
+                            }
+                            if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('show')>=0){
+                                app.visible=true
+                                app.uMsg=''
+                            }
+                            if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('hide')>=0){
+                                app.visible=false
+                                app.uMsg=''
+                            }
+                            if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('launch')>=0){
+                                Qt.openUrlExternally(app.url)
+                                app.uMsg=''
+                            }
+                            app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+                            app.flags = Qt.Window | Qt.FramelessWindowHint
+
                         }
-
-                        //Comandos de Twitch Streamer
-                        if(isVM(msg)&&(''+mensaje).indexOf('!')===1&&user===app.user){
-                            m0=mensaje.split('!')
-                            let m1=m0[1].split(' ')
-                            let paramUser=''
-                            if(m1.length>=2){
-                                paramUser=m1[1].replace(/\n/g, '' )
-                            }
-                            //Quit
-                            if((''+mensaje).indexOf('!q')===1){
-                                Qt.quit()
-                            }
-                        }
-
-                        //Comandos de Administradores
-                        //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
-                        if(isVM(msg)&&(''+mensaje).indexOf('!')===1&&app.mods.indexOf(user)>=0){
-                            m0=mensaje.split('!')
-                            m1=m0[1].split(' ')
-                            paramUser=''
-                            if(m1.length>=2){
-                                paramUser=m1[1].replace(/\n/g, '' )
-                            }
-                            //Set all speak
-                            //if(m1[0].length>1&&m1[0]==='alls'){
-                            if((''+mensaje).indexOf('!alls')===1){
-                                app.allSpeak=!app.allSpeak
-                                if(app.allSpeak){
-                                    unik.speak("Ahora se oirán todos los mensajes del chat.")
-                                }else{
-                                    unik.speak("Ahora solo algunos usuarios del chat se oirán.")
-                                }
-                                app.uMsg=''
-                            }
-                            //Add user speak
-                            if(m1[0].length>1&&m1[0]==='as'){
-                                if(app.ue.indexOf(paramUser)<0){
-                                    unik.speak("Se agrega para hablar a "+paramUser)
-                                    app.ue.push(paramUser)
-                                }else{
-                                    unik.speak(paramUser+' ya estaba agregado.')
-                                }
-                                app.uMsg=''
-                            }
-                            //Remove user speak
-                            if(m1[0].length>1&&m1[0]==='rs'){
-                                if(app.ue.indexOf(paramUser)>=0){
-                                    unik.speak("Se quita para hablar a "+paramUser)
-                                    app.ue.pop(paramUser)
-                                }else{
-                                    unik.speak(paramUser+' no estaba agregado.')
-                                }
-                                app.uMsg=''
-                            }
-
-                            //Set DEV
-                            if((''+mensaje).indexOf('!dev')===1){
-                                m0=(''+mensaje).split('!dev')
-                                app.dev=!app.dev
-                                app.uMsg=''
-                            }
-
-                            //Set Rango Mínimo de Audio Mensaje
-                            if((''+mensaje).indexOf('!setRangoMinimoDeAudio=')===1){
-                                m0=(''+mensaje).split('!setRangoMinimoDeAudio=')
-                                let value=parseInt(m0[1])
-                                if(value<=100){
-                                    apps.rangoPermitido=value
-                                    unik.speak('Se ha cambiado el rango mínimo de audio de mensajes del chat.')
-                                }
-                                app.uMsg=''
-                            }
-
-                            //Set Segundos pausa Audio Mensaje
-                            if((''+mensaje).indexOf('!ss=')===1){
-                                m0=(''+mensaje).split('!ss=')
-                                let value=parseInt(m0[1])
-                                if(value<=30){
-                                    apps.segundosEntreAudioYAudio=value
-                                    unik.speak('Se ha cambiado tiempo de espera de cola de mensajes del chat.')
-                                }
-                                app.uMsg=''
-                            }
-                            //Set Segundos pausa Audio Mensaje
-                            if((''+mensaje).indexOf('!ssl=')===1){
-                                m0=(''+mensaje).split('!ssl=')
-                                let value=parseInt(m0[1])
-                                if(value<=1000){
-                                    apps.msLetra=value
-                                    unik.speak('Se ha cambiado el valor de milisegundos de cada letra del chat para voz.')
-                                }
-                                app.uMsg=''
-                            }
-
-                            //Set volume speak
-                            if(m1[0].length>1&&m1[0]==='sv'){
-                                if(app.ue.indexOf(paramUser)>=0){
-                                    unik.setTtsVolume(parseInt(paramUser))
-                                }else{
-                                    unik.speak('El comando no se ha aplicado. Falta el valor del volumen.')
-                                }
-                                app.uMsg=''
-                            }
-
-
-                            //Rangos
-                            //Set Segundos pausa Audio Mensaje
-                            if((''+mensaje).indexOf('!setRango=')===1){
-                                m0=(''+mensaje).split('!setRango=')
-                                let value=parseInt(m0[1])
-                                if(value<=100){
-                                    manSqliteData.setRango(paramUser, value)
-                                    unik.speak('Se ha cambiado el rango de '+paramUser+' a '+value)
-                                }
-                                app.uMsg=''
-                            }
-
-                            app.uHtml=result
-                            return
-                        }
-                        if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('show')>=0){
-                            app.visible=true
-                            app.uMsg=''
-                        }
-                        if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('hide')>=0){
-                            app.visible=false
-                            app.uMsg=''
-                        }
-                        if(msg.indexOf(''+app.user)>=0 &&msg.indexOf('launch')>=0){
-                            Qt.openUrlExternally(app.url)
-                            app.uMsg=''
-                        }
-                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-                        app.flags = Qt.Window | Qt.FramelessWindowHint
-                    }
-                }
-                app.uHtml=result
-                running=true
-                //uLogView.showLog(result)
+                        //app.uHtml=result
+                        running=true
+                    });
             });
+
         }
     }
     Timer{
