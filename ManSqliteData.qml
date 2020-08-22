@@ -58,7 +58,14 @@ Item {
         return 100
     }
     Component.onCompleted: {
-        unik.sqliteInit('users.sqlite')
+        let folder=pws+'/'+app.moduleName
+        if(!unik.folderExist(pws)){
+            unik.mkdir(pws)
+        }
+        if(!unik.folderExist(folder)){
+            unik.mkdir(folder)
+        }
+        unik.sqliteInit(folder+'/data.sqlite')
         let sql='CREATE TABLE IF NOT EXISTS users'
             +'('
             +'id INTEGER PRIMARY KEY AUTOINCREMENT,'
