@@ -581,19 +581,13 @@ ApplicationWindow {
         interval: 250
         onTriggered: {
             if(wv.opacity===0.0){
-                //app.color='transparent'
                 if(lm.count>=1){
                     xLv.height=lv.children[0].children[0].height//+app.fs*3
                 }else{
                     xLv.height=app.fs//*3
                 }
-                //xLv.height=app.height
-                //app.y=Screen.height-app.height
                 xStart.visible=false
             }else{
-                //app.color='white'
-                //app.height=Screen.desktopAvailableHeight//Screen.height
-                //app.y=Screen.height-Screen.desktopAvailableHeight
                 xStart.visible=true
                 xLv.height=xApp.height*0.5//Screen.desktopAvailableHeight
             }

@@ -30,7 +30,7 @@ Item {
    //Mansajes
     function setMsg(user, msg){
         let d = new Date(Date.now())
-        let sql='insert into users (nickname, msg, ms)values(\''+user+'\', \''+msg+'\', '+d.getTime()+')'
+        let sql='insert into msgs (nickname, msg, ms)values(\''+user+'\', \''+msg+'\', '+d.getTime()+')'
         unik.sqlQuery(sql)
     }
 
