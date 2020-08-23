@@ -430,12 +430,17 @@ ApplicationWindow {
                             //Call Qml Code
                             if(isVM(msg)&&(''+msg).indexOf('!c=')===0){
                                 m0=(''+msg).split('!c=')
-                                unik.speak('Preparando script con código '+m0[1])
+                                //unik.speak('Preparando script con código '+m0[1])
                                 let value=parseInt((''+m0[1]).replace(/\\n/g, '\n'))
                                 //console.log('Value: ['+value+']')
                                 let code=''+manSqliteData.getCode(value, 0)
-                                console.log('Code: '+code)
-                                let comp = Qt.createQmlObject(code, xContainer, 'xcontainerusercode')
+                                //console.log('Code: '+code)
+                                if(code!==''){
+                                    let comp = Qt.createQmlObject(code, xContainer, 'xcontainerusercode')
+                                }else{
+                                    unik.speak('No existe código QML con el número '+m0[1])
+                                }
+
                             }
                             //Comandos de Administradores
                             //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
