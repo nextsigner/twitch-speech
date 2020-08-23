@@ -65,7 +65,7 @@ Item {
     //Codes
     function getCode(code, rango){
         ////unik.sqliteInit(r.url)
-        let sql='select code from codes where codeid='+code//+' and rp>1'//+rango+';'
+        let sql='select code from codes where codeid='+code+' and rp>'+rango+';'
         let rows=unik.getSqlData(sql)
         if(rows.length>=1){
             return rows[0].col[0]
