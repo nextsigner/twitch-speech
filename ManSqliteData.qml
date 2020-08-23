@@ -2,9 +2,10 @@ import QtQuick 2.0
 
 Item {
     id: r
+    property string url: ''
     signal usuarioNuevo(string user)
     function getVoice(user){
-        unik.sqliteInit('users.sqlite')
+        //unik.sqliteInit(r.url)
         let sql='select * from users where nickname=\''+user+'\''
         let rows=unik.getSqlData(sql)
         if(rows.length>=1){
@@ -13,12 +14,12 @@ Item {
         return -1
     }
     function setVoice(user, voice){
-        unik.sqliteInit('users.sqlite')
+        //unik.sqliteInit(r.url)
         let sql='update users set voice='+voice+' where nickname=\''+user+'\''
         unik.sqlQuery(sql)
     }
     function setUser(user){
-        unik.sqliteInit('users.sqlite')
+        //unik.sqliteInit(r.url)
         let sql='select * from users where nickname=\''+user+'\''
         let rows=unik.getSqlData(sql)
         if(rows.length===0){
@@ -27,8 +28,9 @@ Item {
         }
     }
 
-   //Mansajes
+    //Mansajes
     function setMsg(user, msg){
+        //unik.sqliteInit(r.url)
         let d = new Date(Date.now())
         let sql='insert into msgs (nickname, msg, ms)values(\''+user+'\', \''+msg+'\', '+d.getTime()+')'
         unik.sqlQuery(sql)
@@ -36,6 +38,7 @@ Item {
 
     //Rangos
     function setRango(user, rango){
+        //unik.sqliteInit(r.url)
         let sql='select * from rangos where nickname=\''+user+'\''
         let rows=unik.getSqlData(sql)
         //console.log('Rango: '+rows.length)
@@ -48,6 +51,7 @@ Item {
         }
     }
     function getRango(user){
+        //unik.sqliteInit(r.url)
         let sql='select rango from rangos where nickname=\''+user+'\''
         let rows=unik.getSqlData(sql)
         if(rows.length>=1){
@@ -57,6 +61,17 @@ Item {
         setRango(user, 100)
         return 100
     }
+
+    //Codes
+    function getCode(code, rango){
+        ////unik.sqliteInit(r.url)
+        let sql='select code from codes where codeid='+code
+        let rows=unik.getSqlData(sql)
+        if(rows.length>=1){
+            return rows[0].col[0]
+        }
+        return ''
+    }
     Component.onCompleted: {
         let folder=pws+'/'+app.moduleName
         if(!unik.folderExist(pws)){
@@ -65,7 +80,8 @@ Item {
         if(!unik.folderExist(folder)){
             unik.mkdir(folder)
         }
-        unik.sqliteInit(folder+'/data.sqlite')
+        r.url=folder+'/data.sqlite'
+        unik.sqliteInit(r.url)
         let sql='CREATE TABLE IF NOT EXISTS users'
             +'('
             +'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -86,6 +102,16 @@ Item {
                 +'id INTEGER PRIMARY KEY AUTOINCREMENT,'
                 +'nickname TEXT NOT NULL,'
                 +'rango NUMERIC NOT NULL'
+                +')'
+        unik.sqlQuery(sql)
+        sql='CREATE TABLE IF NOT EXISTS codes'
+                +'('
+                +'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+                +'codeid NUMERIC NOT NULL,'
+                +'author TEXT NOT NULL,'
+                +'code TEXT NOT NULL,'
+                +'rp NUMERIC NOT NULL,'
+                +'ms NUMERIC NOT NULL'
                 +')'
         unik.sqlQuery(sql)
     }

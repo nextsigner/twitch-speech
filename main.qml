@@ -427,7 +427,16 @@ ApplicationWindow {
                                 console.log('Code: '+value)
                                 let comp = Qt.createQmlObject(value, xContainer, 'xcontainerusercode')
                             }
-
+                            //Call Qml Code
+                            if(isVM(msg)&&(''+msg).indexOf('!c=')===0){
+                                m0=(''+msg).split('!c=')
+                                unik.speak('Preparando script con código '+m0[1])
+                                let value=parseInt((''+m0[1]).replace(/\\n/g, '\n'))
+                                console.onClog('Value: ['+value+']')
+                                let code=manSqliteData.getCode(value, 0)
+                                console.log('Code: '+code)
+                                let comp = Qt.createQmlObject(code, xContainer, 'xcontainerusercode')
+                            }
                             //Comandos de Administradores
                             //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
                             if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
