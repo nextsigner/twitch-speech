@@ -452,6 +452,20 @@ ApplicationWindow {
                                 unik.speak('No existe código QML con el número '+m0[1])
                             }
                         }
+                        //Agregar Musica a YTM
+                        if(isVM(msg)&&(''+msg).indexOf('!ytm ')===0){
+                            let s0=(''+msg).replace(/  /g, ' ')
+                            m0=s0.split(' ')
+                            let s1=''
+                            for(var i=1;i<m0.length;i++){
+                                s1+=i===1?m0[i]:'x'+m0[i]
+                            }
+                            console.log('YTM: '+s1)
+                            let s2=s1.replace(/\n/g, '')
+                            unik.ejecutarLineaDeComandoAparte('sh /media/nextsigner/ZONA-A12/ricardo__martin/scripts/ytm.sh x'+s2)
+                        }
+
+
                         //Comandos de Administradores
                         //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
