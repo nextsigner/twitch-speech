@@ -367,7 +367,7 @@ ApplicationWindow {
                         user=''+d1[0]
                         msg=''+d1[1]
                         let cadena=user+' dice '+msg
-                        if(cadena===app.uMsg){
+                        if(cadena===app.uMsg||user.length<4){
                             app.uHtml=result
                             running=true
                             return
@@ -389,6 +389,8 @@ ApplicationWindow {
                                         lm.append(lm.addMsg(user, cadena))
                                         manSqliteData.setMsg(user, msg)
                                         app.uHtml=result
+                                        app.flags=Qt.Window | Qt.FramelessWindowHint |  Qt.WindowTransparentForInput
+                                        app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
                                         running=true
                                         return
                                     }
