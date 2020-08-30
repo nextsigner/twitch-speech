@@ -40,14 +40,14 @@ ApplicationWindow {
         if(!btn1.enabled){
             return
         }
-        if(active){
-            sacudido=!sacudido
-        }
-        if(sacudido){
-            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
-        }else{
-            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-        }
+//        if(active){
+//            sacudido=!sacudido
+//        }
+//        if(sacudido){
+//            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+//        }else{
+//            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+//        }
     }
     FontLoader{name: "FontAwesome"; source: "qrc:/fontawesome-webfont.ttf"}
     Settings{
@@ -357,6 +357,15 @@ ApplicationWindow {
             wv.runJavaScript('document.getElementsByTagName("span").length', function(result0) {
                 //console.log('-----------------------------------111>\n\n\n\n'+result0)
                 wv.runJavaScript('function ret(){var aaa=document.getElementsByTagName("span")['+parseInt(result0 -6)+'].innerText; var aaa2=document.getElementsByTagName("span")['+parseInt(result0 -4)+'].innerText; return aaa+"-----"+aaa2;} ret()', function(result) {
+                    if(!result){
+                        wv.runJavaScript('window.document.documentElement.innerText', function(resultDoc) {
+                            if(resultDoc.indexOf('Guru')>=0&&resultDoc.indexOf('Mediation')>=0&&resultDoc.indexOf('503')>=0){
+                                let ndr=new Date(Date.now())
+                                app.url='https://www.twitch.tv/embed/'+user+'/chat?parent=nextsigner.github.io&r='+ndr.getTime()
+                                wv.url=app.url
+                            }
+                        });
+                    }
                     if(result!==app.uHtml){
                         if(result.indexOf('-----')<0){
                             running=true
@@ -367,7 +376,7 @@ ApplicationWindow {
                         user=''+d1[0]
                         msg=''+d1[1]
                         let cadena=user+' dice '+msg
-                        if(cadena===app.uMsg||user.length<4){
+                        if(cadena===app.uMsg){
                             app.uHtml=result
                             running=true
                             return
@@ -389,8 +398,15 @@ ApplicationWindow {
                                         lm.append(lm.addMsg(user, cadena))
                                         manSqliteData.setMsg(user, msg)
                                         app.uHtml=result
-                                        app.flags=Qt.Window | Qt.FramelessWindowHint |  Qt.WindowTransparentForInput
-                                        app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+                                        //unik.speak('Nuevo mensaje')
+                                        if(!app.active){
+                                            mp.source='./sounds/beep.wav'
+                                            mp.play()
+                                        }
+//                                        app.flags = Qt.Window | Qt.FramelessWindowHint
+//                                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+//                                        app.raise()
+//                                        app.active=true
                                         running=true
                                         return
                                     }
@@ -586,9 +602,8 @@ ApplicationWindow {
                             Qt.openUrlExternally(app.url)
                             app.uMsg=''
                         }
-                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-                        app.flags = Qt.Window | Qt.FramelessWindowHint
-
+                        //app.flags = Qt.Window | Qt.FramelessWindowHint
+                        //app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
                     }
                     //app.uHtml=result
                     running=true
