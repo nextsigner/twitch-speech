@@ -115,7 +115,7 @@ ApplicationWindow {
                     id: wv
                     anchors.fill: parent
                     visible: false
-                    onUrlChanged: {
+                    /*onUrlChanged: {
                         if((''+url)==='https://www.twitch.tv/?no-reload=true'){
                             let c='<iframe frameborder="0"
         scrolling="no"
@@ -130,7 +130,7 @@ ApplicationWindow {
                             wv.url=app.url
                             wv.visible=true
                         }
-                    }
+                    }*/
                     onLoadProgressChanged: {
                         if(loadProgress===100){
                             //                        if((''+wv.url)==='http://twitch.tv/nextsigner/embed'){
@@ -138,9 +138,8 @@ ApplicationWindow {
                             //                            wv.url=app.url
                             //                            wv.visible=true
                             //                        }
-                            wv.visible=true
+                            //wv.visible=true
                             tCheck.start()
-
                         }
                     }
                 }
@@ -406,7 +405,7 @@ ApplicationWindow {
                         user=''+d1[0]
                         msg=''+d1[1]
                         let cadena=user+' dice '+msg
-                        if(cadena===app.uMsg||user.length<3){
+                        if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
                             running=true
                             return
@@ -427,8 +426,6 @@ ApplicationWindow {
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
                                         lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
                                         manSqliteData.setMsg(user, msg)
-                                        app.uHtml=result
-
                                         if(!app.active&&lm.count===1){
                                             mp.source='./sounds/beep.wav'
                                             mp.volume=1.0
@@ -436,16 +433,13 @@ ApplicationWindow {
                                             //unik.speak('No habia cola')
                                         }else{
                                             if(lm.count>1){
-                                                mp.volume=0.5
+                                                mp.volume=0.35
                                                 mp.source='./sounds/beep.wav'
                                                 mp.play()
                                             }
                                             //unik.speak('Cola cuenta '+lm.count)
                                         }
-                                        //                                        app.flags = Qt.Window | Qt.FramelessWindowHint
-                                        //                                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-                                        //                                        app.raise()
-                                        //                                        app.active=true
+                                        app.uHtml=result
                                         running=true
                                         return
                                     }
@@ -455,6 +449,7 @@ ApplicationWindow {
 
                         //Comandos de Twitch Streamer
                         console.log('User:['+user+'] ['+app.user+']')
+                        console.log('Msg:['+msg+']')
                         //Qt.quit()
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&user===app.user){
                             m0=msg.split('!')
@@ -464,8 +459,12 @@ ApplicationWindow {
                                 paramUser=m1[1].replace(/\n/g, '' )
                             }
                             //Pause
-                            if((''+msg).indexOf('!p')===0){
-                                app.paused=!app.paused
+                            if(msg==='!pa'){
+                                app.paused=true
+                            }
+                            //Play
+                            if(msg==='!p'){
+                                app.paused=false
                             }
                             //Quit
                             if((''+msg).indexOf('!q')===0){
@@ -476,7 +475,10 @@ ApplicationWindow {
                                 unik.speak('Limpiando la pantalla. '+xContainer.children.length+' objetos eliminados.')
                                 app.clearContainer()
                             }
+                            app.uHtml=result
                             app.uMsg=''
+                            running=true
+                            return
                         }
 
 
