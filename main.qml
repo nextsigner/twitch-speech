@@ -16,6 +16,7 @@ ApplicationWindow {
     y:apps.y//Screen.height*0.5-height*0.5
     color: 'transparent'
 
+    property bool paused: false
     property bool sacudido: false
     property bool dev: true
 
@@ -40,14 +41,14 @@ ApplicationWindow {
         if(!btn1.enabled){
             return
         }
-//        if(active){
-//            sacudido=!sacudido
-//        }
-//        if(sacudido){
-//            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
-//        }else{
-//            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-//        }
+        //        if(active){
+        //            sacudido=!sacudido
+        //        }
+        //        if(sacudido){
+        //            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+        //        }else{
+        //            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        //        }
     }
     FontLoader{name: "FontAwesome"; source: "qrc:/fontawesome-webfont.ttf"}
     Settings{
@@ -83,6 +84,16 @@ ApplicationWindow {
     }
     MediaPlayer{
         id: mp
+    }
+    Item{
+        id: xMouseArea
+        visible: false
+        width: Screen.width
+        height: Screen.desktopAvailableHeight
+        MouseArea{
+            anchors.fill: parent
+            onClicked: app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+        }
     }
     Item{
         id: xApp
@@ -178,7 +189,7 @@ ApplicationWindow {
         id: xStart
         width: apps.w
         height: apps.h
-        color: 'blue'
+        color: 'transparent'
         Boton{
             id: btn1
             width: parent.width*0.5
@@ -284,6 +295,10 @@ ApplicationWindow {
                     Rectangle{
                         anchors.fill: parent
                         opacity: 0.5
+                        MouseArea{
+                            anchors.fill: parent
+                            onClicked: app.paused=true
+                        }
                     }
                     UText {
                         id: txtMsg
@@ -295,13 +310,28 @@ ApplicationWindow {
                         anchors.centerIn: parent
                     }
                     Timer{
+                        id: timerWaitRemove
+                        running: false
+                        repeat: true
+                        interval: 1000
+                        onTriggered: {
+                            if(!app.paused){
+                                lm.remove(0)
+                            }
+                        }
+                    }
+                    Timer{
                         id: timerRemove
                         running: false
                         repeat: false
                         //interval: 99999999
                         onTriggered: {
                             //app.uMp3Duration=0
-                            lm.remove(0)
+                            if(app.paused){
+                                timerWaitRemove.start()
+                            }else{
+                                lm.remove(0)
+                            }
                         }
                     }
                     Timer{
@@ -324,12 +354,12 @@ ApplicationWindow {
         id: xContainer
         anchors.fill: parent
         function setAppActive(active){
-//            if(!active){
-//                app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
-//            }else{
-//                app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-//            }
-//            app.active=true
+            //            if(!active){
+            //                app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+            //            }else{
+            //                app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+            //            }
+            //            app.active=true
         }
     }
     //    UText{
@@ -376,7 +406,7 @@ ApplicationWindow {
                         user=''+d1[0]
                         msg=''+d1[1]
                         let cadena=user+' dice '+msg
-                        if(cadena===app.uMsg){
+                        if(cadena===app.uMsg||user.length<3){
                             app.uHtml=result
                             running=true
                             return
@@ -395,18 +425,27 @@ ApplicationWindow {
                                 }else{
                                     //speakMp3(user, msg)
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
-                                        lm.append(lm.addMsg(user, cadena))
+                                        lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
                                         manSqliteData.setMsg(user, msg)
                                         app.uHtml=result
-                                        //unik.speak('Nuevo mensaje')
-                                        if(!app.active){
+
+                                        if(!app.active&&lm.count===1){
                                             mp.source='./sounds/beep.wav'
+                                            mp.volume=1.0
                                             mp.play()
+                                            //unik.speak('No habia cola')
+                                        }else{
+                                            if(lm.count>1){
+                                                mp.volume=0.5
+                                                mp.source='./sounds/beep.wav'
+                                                mp.play()
+                                            }
+                                            //unik.speak('Cola cuenta '+lm.count)
                                         }
-//                                        app.flags = Qt.Window | Qt.FramelessWindowHint
-//                                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-//                                        app.raise()
-//                                        app.active=true
+                                        //                                        app.flags = Qt.Window | Qt.FramelessWindowHint
+                                        //                                        app.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+                                        //                                        app.raise()
+                                        //                                        app.active=true
                                         running=true
                                         return
                                     }
@@ -424,6 +463,10 @@ ApplicationWindow {
                             if(m1.length>=2){
                                 paramUser=m1[1].replace(/\n/g, '' )
                             }
+                            //Pause
+                            if((''+msg).indexOf('!p')===0){
+                                app.paused=!app.paused
+                            }
                             //Quit
                             if((''+msg).indexOf('!q')===0){
                                 Qt.quit()
@@ -433,6 +476,7 @@ ApplicationWindow {
                                 unik.speak('Limpiando la pantalla. '+xContainer.children.length+' objetos eliminados.')
                                 app.clearContainer()
                             }
+                            app.uMsg=''
                         }
 
 
@@ -464,7 +508,7 @@ ApplicationWindow {
                             if(code!==''){
                                 let comp = Qt.createQmlObject(code, xContainer, 'xcontainerusercode')
                                 //if(comp.user){
-                                    comp.user=user
+                                comp.user=user
                                 //}
                             }else{
                                 unik.speak('No existe código QML con el número '+m0[1])
@@ -670,6 +714,7 @@ ApplicationWindow {
                     xStart.visible=false
                     wv.opacity=0.0
                     btn1.enabled=true
+                    xMouseArea.visible=true
                     btn1.t='\uf04d'
                     return
                 }
