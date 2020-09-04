@@ -465,6 +465,11 @@ ApplicationWindow {
                             //Play
                             if(msg==='!p'){
                                 app.paused=false
+                                app.active=true
+                            }
+                            //Stop and Delete
+                            if(msg==='!s'){
+                                app.stop()
                             }
                             //Quit
                             if((''+msg).indexOf('!q')===0){
@@ -919,9 +924,17 @@ ApplicationWindow {
             });
         });
     }
+
     function play(){
         wvtav.runJavaScript('document.getElementsByTagName("BUTTON")[2].click()', function(result4) {
             console.log('Resultado 4: '+result4)
+        });
+    }
+    function stop(){
+        wvtav.runJavaScript('document.getElementById(\'audioElement1\').stop()', function(result) {
+            if(result){
+                lm.remove(0)
+            }
         });
     }
     function setHtml(){
