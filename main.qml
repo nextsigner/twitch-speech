@@ -249,6 +249,7 @@ ApplicationWindow {
         width: xApp.width
         height: xApp.height
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: app.fs*2
         //anchors.top: xStart.bottom
         ListView{
             id: lv
