@@ -249,7 +249,7 @@ ApplicationWindow {
         width: xApp.width
         height: xApp.height
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: app.fs*2
+        anchors.bottomMargin: Qt.platform.os==='windows'?app.fs*2:0
         //anchors.top: xStart.bottom
         ListView{
             id: lv
@@ -405,7 +405,7 @@ ApplicationWindow {
                         let d1=d0.split('-----')
                         user=''+d1[0]
                         msg=''+d1[1]
-                        let cadena=user+' dice '+msg
+                        let cadena=(''+user).replace(/_/g, ' ')+' dice '+msg
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
                             running=true
@@ -426,7 +426,7 @@ ApplicationWindow {
                                     //speakMp3(user, msg)
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
                                         lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
-                                        manSqliteData.setMsg(user, msg)
+                                        manSqliteData.setMsg((''+user).replace(/_/g, ' '), msg)
                                         if(!app.active&&lm.count===1){
                                             mp.source='./sounds/beep.wav'
                                             mp.volume=1.0
@@ -482,11 +482,17 @@ ApplicationWindow {
                                 app.clearContainer()
                             }
                             app.uHtml=result
-                            app.uMsg=''
-                            running=true
-                            return
+
+                            //Condicional que permite correr comandos
+                            if(!isVC(msg)){
+                                app.uMsg=''
+                                running=true
+                                return
+                            }
                         }
 
+
+                        //Atención!! Cada vez que se crea un comando hay que registrarlo en la funcion isVC()
 
                         //Comandos de Usuarios
                         //Set all speak
@@ -495,7 +501,9 @@ ApplicationWindow {
                             let voice=parseInt(m0[1])
                             if(voice<=app.arrayLanguages.length-1){
                                 manSqliteData.setVoice(user, voice)
+                                unik.speak('voz de usuario '+user+' cambiada a '+voice)
                             }
+
                         }
                         //Add Qml Code
                         if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
@@ -628,7 +636,6 @@ ApplicationWindow {
 
 
                             //Rangos
-                            //Set Segundos pausa Audio Mensaje
                             if((''+msg).indexOf('!setRango=')===1){
                                 m0=(''+msg).split('!setRango=')
                                 let value=parseInt(m0[1])
@@ -890,6 +897,11 @@ ApplicationWindow {
         if(m.indexOf(s6)>=0)return false;
         return true
     }
+    function isVC(m){
+        let s1='!voz= !s= !c= !show !hide'
+        if(m.indexOf(s1)>=0)return true;
+        return false
+    }
     function setDesktopIcon(params){
         let path=pws+"/"+app.moduleName
         if(Qt.platform.os==='windows'){
@@ -903,7 +915,7 @@ ApplicationWindow {
 
     function speakMp3(user, text){
         //console.log("Convirtiendo a MP3: "+text)
-        let indexLang=manSqliteData.getVoice(user)
+        let indexLang=manSqliteData.getVoice((''+user).replace(/ /g, '_'))
         if(indexLang===-1){
             indexLang=0
             manSqliteData.setUser(user)
