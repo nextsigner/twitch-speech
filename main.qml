@@ -898,7 +898,8 @@ ApplicationWindow {
         return true
     }
     function isVC(m){
-        let s1='!voz= !s= !c= !show !hide'
+        //let s1='!voz= !s= !c= !show !hide'
+        let s1='!voz='
         if(m.indexOf(s1)>=0)return true;
         return false
     }
