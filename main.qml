@@ -13,7 +13,7 @@ ApplicationWindow {
     height: dev?xApp.height:xStart.height
     flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint// | Qt.WindowTransparentForInput
     x:apps.x//Screen.width*0.5-width*0.5
-    y:apps.y//Screen.height*0.5-height*0.5
+    y:Qt.platform.os==='linux'?apps.y:0//Screen.height*0.5-height*0.5
     color: 'transparent'
 
     property bool paused: false
@@ -98,7 +98,13 @@ ApplicationWindow {
     Item{
         id: xApp
         width: Screen.width
-        height: Screen.desktopAvailableHeight
+        height: Qt.platform.os==='linux'?Screen.desktopAvailableHeight:Screen.height-2//-(Screen.height-Screen.desktopAvailableHeight)
+//        Rectangle{
+//            anchors.fill: parent
+//            color: 'red'
+//            border.color: 'blue'
+//            border.width: 10
+//        }
         Row{
             anchors.bottom: parent.bottom
             Item{
@@ -249,7 +255,7 @@ ApplicationWindow {
         width: xApp.width
         height: xApp.height
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: Qt.platform.os==='windows'?app.fs*2:0
+        anchors.bottomMargin: 0
         //anchors.top: xStart.bottom
         ListView{
             id: lv
@@ -404,7 +410,7 @@ ApplicationWindow {
                         }
                         user=''+result.substring(0, result.indexOf(':'));
                         msg=''+result.substring(result.indexOf(':')+1, result.length);
-                        let cadena=(''+user).replace(/_/g, ' ')+' dice '+msg
+                        let cadena=((''+user).replace(/_/g, ' ')+' dice '+msg).replace(/\n/g, '')
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
                             running=true
