@@ -378,18 +378,14 @@ ApplicationWindow {
         id:tCheck
         running: false
         repeat: true
-        interval: 2000
-        property int v: 0
+        interval: 500
         onTriggered: {
             //running=false
             var m0
             var user
             var msg
             wv.runJavaScript('document.getElementsByClassName("chat-line__message").length', function(result0) {
-                console.log('V'+tCheck.v+': ----------------------------------->'+result0)
-                tCheck.v++
-                //return
-                //wv.runJavaScript('function ret(){var aaa=document.getElementsByClassName("chat-line__message")['+parseInt(result0 -1)+'].innerText; var aaa2=document.getElementsByTagName("span")['+parseInt(result0 -4)+'].innerText; return aaa+"-----"+aaa2;} ret()', function(result) {
+                //console.log('V'+tCheck.v+': ----------------------------------->'+result0)
                 wv.runJavaScript('function ret(){var aaa=document.getElementsByClassName("chat-line__message")['+parseInt(result0 -1)+'].innerText; return aaa;} ret()', function(result) {
                 if(!result){
                         wv.runJavaScript('window.document.documentElement.innerText', function(resultDoc) {
