@@ -378,16 +378,20 @@ ApplicationWindow {
         id:tCheck
         running: false
         repeat: true
-        interval: 200
+        interval: 2000
+        property int v: 0
         onTriggered: {
             //running=false
             var m0
             var user
             var msg
-            wv.runJavaScript('document.getElementsByTagName("span").length', function(result0) {
-                //console.log('-----------------------------------111>\n\n\n\n'+result0)
-                wv.runJavaScript('function ret(){var aaa=document.getElementsByTagName("span")['+parseInt(result0 -6)+'].innerText; var aaa2=document.getElementsByTagName("span")['+parseInt(result0 -4)+'].innerText; return aaa+"-----"+aaa2;} ret()', function(result) {
-                    if(!result){
+            wv.runJavaScript('document.getElementsByClassName("chat-line__message").length', function(result0) {
+                console.log('V'+tCheck.v+': ----------------------------------->'+result0)
+                tCheck.v++
+                //return
+                //wv.runJavaScript('function ret(){var aaa=document.getElementsByClassName("chat-line__message")['+parseInt(result0 -1)+'].innerText; var aaa2=document.getElementsByTagName("span")['+parseInt(result0 -4)+'].innerText; return aaa+"-----"+aaa2;} ret()', function(result) {
+                wv.runJavaScript('function ret(){var aaa=document.getElementsByClassName("chat-line__message")['+parseInt(result0 -1)+'].innerText; return aaa;} ret()', function(result) {
+                if(!result){
                         wv.runJavaScript('window.document.documentElement.innerText', function(resultDoc) {
                             if(resultDoc.indexOf('Guru')>=0&&resultDoc.indexOf('Mediation')>=0&&resultDoc.indexOf('503')>=0){
                                 let ndr=new Date(Date.now())
@@ -397,14 +401,13 @@ ApplicationWindow {
                         });
                     }
                     if(result!==app.uHtml){
-                        if(result.indexOf('-----')<0){
+                        //console.log('RRRRRRRRRRRRRR: '+result)
+                        if(result.indexOf(': ')<0){
                             running=true
                             return
                         }
-                        let d0=''+result
-                        let d1=d0.split('-----')
-                        user=''+d1[0]
-                        msg=''+d1[1]
+                        user=''+result.substring(0, result.indexOf(':'));
+                        msg=''+result.substring(result.indexOf(':')+1, result.length);
                         let cadena=(''+user).replace(/_/g, ' ')+' dice '+msg
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
