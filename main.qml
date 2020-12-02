@@ -560,6 +560,7 @@ ApplicationWindow {
                         //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
 
                         //Funciona porque esta registrado en isVC()
+                        //Escuchar a un solo usuario - Ejemplo !l eitohaze solo permitirá escuchar al eitohaze
                         if(isVM(msg)&&(''+msg).indexOf('!l ')===0&&app.mods.indexOf(user)>=0){
                             m0=(''+msg).split('!l ')
                             let voice=''+m0[1]
@@ -571,6 +572,12 @@ ApplicationWindow {
                             }
                             app.uMsg=''
                         }
+                        if(isVM(msg)&&(''+msg).indexOf('!la')===0&&app.mods.indexOf(user)>=0){
+                            app.listen=''
+                            app.uMsg=''
+                            unik.speak('Ahora se escucharán todos los usuarios del chat.')
+                        }
+
 
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
                             //unik.speak('Comando')
@@ -930,6 +937,8 @@ ApplicationWindow {
         let s1='!voz='
         if(m.indexOf(s1)>=0)return true;
         s1='!l '
+        if(m.indexOf(s1)>=0)return true;
+        s1='!la'
         if(m.indexOf(s1)>=0)return true;
         return false
     }
