@@ -34,6 +34,7 @@ ApplicationWindow {
     property var mods: ['ricardo__martin', 'nextsigner', 'lucssagg']
     property var ue: ['ricardo__martin', 'lucssagg', 'nextsigner']
     property bool allSpeak: true
+    property string listen: ''
 
     property var arrayLanguages: ["es-ES_EnriqueVoice", "es-ES_EnriqueV3Voice", "es-ES_LauraVoice", "es-ES_LauraV3Voice", "es-LA_SofiaVoice","es-LA_SofiaV3Voice","es-US_SofiaVoice","es-US_SofiaV3Voice" ]
     onActiveChanged: {
@@ -409,7 +410,7 @@ ApplicationWindow {
                             return
                         }
                         user=''+result.substring(0, result.indexOf(':'));
-                        msg=''+result.substring(result.indexOf(':')+1, result.length);
+                        msg=''+result.substring(result.indexOf(':')+2, result.length-1);
                         let cadena=((''+user).replace(/_/g, ' ')+' dice '+msg).replace(/\n/g, '')
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
@@ -422,7 +423,7 @@ ApplicationWindow {
                         if(isVM(msg)&&(''+msg).indexOf('!')!==0){
                             //console.log('u['+usuario+'] '+app.ue.toString())
                             if(app.ue.indexOf(user)>=0 || app.allSpeak){
-                                if(user.indexOf('itomyy17')>=0){
+                                if(user.indexOf('itomyy17---')>=0){
                                     unik.speak(cadena)
                                     app.uHtml=result
                                     running=true
@@ -430,7 +431,13 @@ ApplicationWindow {
                                 }else{
                                     //speakMp3(user, msg)
                                     if(manSqliteData.getRango(user)<=apps.rangoPermitido){
-                                        lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+                                        if(app.listen===''){
+                                            lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+                                        }else{
+                                            if(app.listen===user){
+                                                lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+                                            }
+                                        }
                                         manSqliteData.setMsg((''+user).replace(/_/g, ' '), msg)
                                         if(!app.active&&lm.count===1){
                                             mp.source='./sounds/beep.wav'
@@ -508,7 +515,6 @@ ApplicationWindow {
                                 manSqliteData.setVoice(user, voice)
                                 unik.speak('voz de usuario '+user+' cambiada a '+voice)
                             }
-
                         }
                         //Add Qml Code
                         if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
@@ -549,9 +555,25 @@ ApplicationWindow {
                         }
 
 
+
                         //Comandos de Administradores
                         //unik.speak('Usuario '+user+' posicion '+app.mods.indexOf(user))
+
+                        //Funciona porque esta registrado en isVC()
+                        if(isVM(msg)&&(''+msg).indexOf('!l ')===0&&app.mods.indexOf(user)>=0){
+                            m0=(''+msg).split('!l ')
+                            let voice=''+m0[1]
+                            if(voice!==app.listen){
+                                app.listen=''+voice
+                                unik.speak('Ahora solo se escuchará a el usuario '+voice)
+                            }else{
+                                unik.speak('Ya se estaba escuchando a el usuario '+voice)
+                            }
+                            app.uMsg=''
+                        }
+
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
+                            //unik.speak('Comando')
                             m0=msg.split('!')
                             m1=m0[1].split(' ')
                             paramUser=''
@@ -569,6 +591,7 @@ ApplicationWindow {
                                 }
                                 app.uMsg=''
                             }
+
                             //Add user speak
                             if(m1[0].length>1&&m1[0]==='as'){
                                 if(app.ue.indexOf(paramUser)<0){
@@ -905,6 +928,8 @@ ApplicationWindow {
     function isVC(m){
         //let s1='!voz= !s= !c= !show !hide'
         let s1='!voz='
+        if(m.indexOf(s1)>=0)return true;
+        s1='!l '
         if(m.indexOf(s1)>=0)return true;
         return false
     }
