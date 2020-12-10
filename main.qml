@@ -166,6 +166,7 @@ ApplicationWindow {
         width: xApp.width*0.8
         height: xApp.height
         anchors.right: xStart.right
+        anchors.rightMargin: 0-xStart.width
         anchors.bottom: xStart.bottom
         WebEngineView{
             id: wvtav
@@ -993,6 +994,7 @@ ApplicationWindow {
     function setHtml(){
         let c=unik.getFile('html.txt')
         wvtav.loadHtml(c)
+        //wvtav.url='http://texttospeechrobot.com/tts/es/texto-a-voz/'
     }
     function clearContainer(){
         for(var i=0;i<xContainer.children.length;i++){
