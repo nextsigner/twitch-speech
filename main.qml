@@ -411,7 +411,7 @@ ApplicationWindow {
                             return
                         }
                         user=''+result.substring(0, result.indexOf(':'));
-                        msg=''+result.substring(result.indexOf(':')+2, result.length-1);
+                        msg=''+result.substring(result.indexOf(':')+2, result.length);
                         let cadena=((''+user).replace(/_/g, ' ')+' dice '+msg).replace(/\n/g, '')
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
