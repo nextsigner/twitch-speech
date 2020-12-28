@@ -100,12 +100,12 @@ ApplicationWindow {
         id: xApp
         width: Screen.width
         height: Qt.platform.os==='linux'?Screen.desktopAvailableHeight:Screen.height-2//-(Screen.height-Screen.desktopAvailableHeight)
-//        Rectangle{
-//            anchors.fill: parent
-//            color: 'red'
-//            border.color: 'blue'
-//            border.width: 10
-//        }
+        //        Rectangle{
+        //            anchors.fill: parent
+        //            color: 'red'
+        //            border.color: 'blue'
+        //            border.width: 10
+        //        }
         Row{
             anchors.bottom: parent.bottom
             Item{
@@ -395,7 +395,7 @@ ApplicationWindow {
             wv.runJavaScript('document.getElementsByClassName("chat-line__message").length', function(result0) {
                 //console.log('V'+tCheck.v+': ----------------------------------->'+result0)
                 wv.runJavaScript('function ret(){var aaa=document.getElementsByClassName("chat-line__message")['+parseInt(result0 -1)+'].innerText; return aaa;} ret()', function(result) {
-                if(!result){
+                    if(!result){
                         wv.runJavaScript('window.document.documentElement.innerText', function(resultDoc) {
                             if(resultDoc.indexOf('Guru')>=0&&resultDoc.indexOf('Mediation')>=0&&resultDoc.indexOf('503')>=0){
                                 let ndr=new Date(Date.now())
@@ -516,6 +516,16 @@ ApplicationWindow {
                                 manSqliteData.setVoice(user, voice)
                                 unik.speak('voz de usuario '+user+' cambiada a '+voice)
                             }
+                        }
+                        //Turno
+                        if(isVM(msg)&&(''+msg).indexOf('!turno')===0){
+                            unik.speak('El usuario '+user+' ha solicitado turno.')
+                            let dt=new Date(Date.now())
+                            let fileName=''+unik.getPath(6)+'/turnos.txt'
+                            let fileData=unik.fileExist(fileName)?''+unik.getFile(fileName):''
+                            let newFileData=fileData+user+' '+dt.toString()+'\n'
+                            unik.setFile(fileName, newFileData)
+                            app.uMsg=''
                         }
                         //Add Qml Code
                         if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
@@ -940,6 +950,8 @@ ApplicationWindow {
         s1='!l '
         if(m.indexOf(s1)>=0)return true;
         s1='!la'
+        if(m.indexOf(s1)>=0)return true;
+        s1='!turno'
         if(m.indexOf(s1)>=0)return true;
         return false
     }
