@@ -520,7 +520,7 @@ ApplicationWindow {
                         //Turno
                         if(isVM(msg)&&(''+msg).indexOf('!turno')===0){
                             //unik.speak('El usuario '+user+' ha solicitado turno.')
-                            lm.append(lm.addMsg((''+user).replace(/_/g, ' '), 'Es usuario '+(''+user).replace(/_/g, ' ')+' ha solicitado turno correctamente.'))
+                            lm.append(lm.addMsg((''+user).replace(/_/g, ' '), 'El usuario '+(''+user).replace(/_/g, ' ')+' ha solicitado turno correctamente.'))
                             let dt=new Date(Date.now())
                             let fileName=''+unik.getPath(6)+'/turnos.txt'
                             let fileData=unik.fileExist(fileName)?''+unik.getFile(fileName):''
