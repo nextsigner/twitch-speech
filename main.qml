@@ -411,7 +411,7 @@ ApplicationWindow {
                             return
                         }
                         user=''+result.substring(0, result.indexOf(':'));
-                        msg=''+result.substring(result.indexOf(':')+2, result.length);
+                        msg=(''+result.substring(result.indexOf(':')+2, result.length)).replace(/"/g, '-');
                         let cadena=((''+user).replace(/_/g, ' ')+' dice '+msg).replace(/\n/g, '')
                         if((cadena===app.uMsg||user.length<3)&&(user!==app.user)){
                             app.uHtml=result
@@ -519,7 +519,8 @@ ApplicationWindow {
                         }
                         //Turno
                         if(isVM(msg)&&(''+msg).indexOf('!turno')===0){
-                            unik.speak('El usuario '+user+' ha solicitado turno.')
+                            //unik.speak('El usuario '+user+' ha solicitado turno.')
+                            lm.append(lm.addMsg((''+user).replace(/_/g, ' '), 'Es usuario '+(''+user).replace(/_/g, ' ')+' ha solicitado turno correctamente.'))
                             let dt=new Date(Date.now())
                             let fileName=''+unik.getPath(6)+'/turnos.txt'
                             let fileData=unik.fileExist(fileName)?''+unik.getFile(fileName):''
@@ -941,6 +942,8 @@ ApplicationWindow {
         if(m.indexOf(s5)>=0)return false;
         let s6='http://'
         if(m.indexOf(s6)>=0)return false;
+        let s7='Para que podamos hacer una lectura de tu Carta Natal '
+        if(m.indexOf(s7)>=0)return false;
         return true
     }
     function isVC(m){
