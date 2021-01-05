@@ -527,6 +527,9 @@ ApplicationWindow {
                             let newFileData=fileData+user+' '+dt.toString()+'\n'
                             unik.setFile(fileName, newFileData)
                             app.uMsg=''
+                            app.uHtml=result
+                            running=true
+                            return
                         }
                         //Add Qml Code
                         if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
