@@ -16,6 +16,8 @@ ApplicationWindow {
     y:Qt.platform.os==='linux'?apps.y:0//Screen.height*0.5-height*0.5
     color: 'transparent'
 
+    property bool onStream: false
+
     property bool paused: false
     property bool sacudido: false
     property bool dev: true
@@ -257,7 +259,7 @@ ApplicationWindow {
         width: xApp.width
         height: xApp.height
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
+        anchors.bottomMargin: !app.onStream?0:xApp.height*0.5
         //anchors.top: xStart.bottom
         ListView{
             id: lv
@@ -302,7 +304,7 @@ ApplicationWindow {
                     }
                     Rectangle{
                         anchors.fill: parent
-                        opacity: 0.5
+                        opacity: app.onStream?1.0:0.5//app.flags===Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint?0.5:1.0
                         MouseArea{
                             anchors.fill: parent
                             onClicked: app.paused=true
@@ -582,11 +584,15 @@ ApplicationWindow {
                                 unik.speak('Ya se estaba escuchando a el usuario '+voice)
                             }
                             app.uMsg=''
+                            app.onStream=true
+                            app.flags=Qt.Window
                         }
                         if(isVM(msg)&&(''+msg).indexOf('!la')===0&&app.mods.indexOf(user)>=0){
                             app.listen=''
                             app.uMsg=''
                             unik.speak('Ahora se escucharán todos los usuarios del chat.')
+                            app.onStream=false
+                            app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
                         }
 
 
