@@ -599,16 +599,15 @@ ApplicationWindow {
                         if(isVM(msg)&&(''+msg).indexOf('!os')===0&&app.mods.indexOf(user)>=0){
                             app.listen=''
                             app.uMsg=''
-                            unik.speak('Ahora se escucharán todos los usuarios del chat.')
                             app.onStream=!app.onStream
                             if(app.onStream){
                                 app.flags=Qt.Window
+                                unik.speak('Mostrando los mensajes se veran en pantalla.')
                             }else{
                                 app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+                                unik.speak('No se mostraran los mensajes se veran en pantalla.')
                             }
                         }
-
-
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
                             //unik.speak('Comando')
                             m0=msg.split('!')
@@ -973,6 +972,8 @@ ApplicationWindow {
         s1='!la'
         if(m.indexOf(s1)>=0)return true;
         s1='!turno'
+        if(m.indexOf(s1)>=0)return true;
+        s1='!os'
         if(m.indexOf(s1)>=0)return true;
         return false
     }
