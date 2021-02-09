@@ -596,6 +596,17 @@ ApplicationWindow {
                             app.onStream=false
                             app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
                         }
+                        if(isVM(msg)&&(''+msg).indexOf('!os')===0&&app.mods.indexOf(user)>=0){
+                            app.listen=''
+                            app.uMsg=''
+                            unik.speak('Ahora se escucharán todos los usuarios del chat.')
+                            app.onStream=!app.onStream
+                            if(app.onStream){
+                                app.flags=Qt.Window
+                            }else{
+                                app.flags=Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+                            }
+                        }
 
 
                         if(isVM(msg)&&(''+msg).indexOf('!')===0&&app.mods.indexOf(user)>=0){
@@ -949,6 +960,8 @@ ApplicationWindow {
         if(m.indexOf(s5)>=0)return false;
         let s6='http://'
         if(m.indexOf(s6)>=0)return false;
+        let s7='Para que podamos hacer una lectura de tu Carta Natal'
+        if(m.indexOf(s7)>=0)return false;
         return true
     }
     function isVC(m){
