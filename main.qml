@@ -521,13 +521,15 @@ ApplicationWindow {
                         }
                         //Turno
                         if(isVM(msg)&&(''+msg).indexOf('!turno')===0){
+                            app.uMsg=''
+                            app.uHtml=result
                             unik.speak('El usuario '+user+' ha solicitado turno.')
                             let dt=new Date(Date.now())
                             let fileName=''+unik.getPath(6)+'/turnos.txt'
                             let fileData=unik.fileExist(fileName)?''+unik.getFile(fileName):''
                             let newFileData=fileData+user+' '+dt.toString()+'\n'
                             unik.setFile(fileName, newFileData)
-                            app.uMsg=''
+                            return
                         }
                         //Add Qml Code
                         if(isVM(msg)&&(''+msg).indexOf('!s=')===0){
