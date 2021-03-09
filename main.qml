@@ -159,6 +159,18 @@ ApplicationWindow {
             width: xApp.width
             anchors.horizontalCenter: parent.horizontalCenter
         }
+        XFollow{
+            urlWidget: 'https://streamlabs.com/widgets/event-list/v1/15602D8555920F741CDF'
+            anchors.right: parent.right
+            onNewFollowEvent: {
+                let cadena='Gracias '+(''+user).replace(/_/g, ' ')+' por seguirme.'
+                lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+            }
+            onNewDonationEvent: {
+                let cadena='Gracias '+user+' por donarme '+donation+'.'
+                lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+            }
+        }
         //ULogView{id: uLogView}
         //UWarnings{id: uWarnings}
 
