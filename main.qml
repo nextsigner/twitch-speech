@@ -166,6 +166,14 @@ ApplicationWindow {
                 let cadena='Gracias '+(''+user).replace(/_/g, ' ')+' por seguirme.'
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
             }
+            onNewHostEvent: {
+                let cadena='Gracias '+(''+user).replace(/_/g, ' ')+' por ese alojarme.'
+                lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+            }
+            onNewRaidEvent: {
+                let cadena='Gracias '+user+' por ese RAID con '+numberUsers+' usuarios.'
+                lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
+            }
             onNewDonationEvent: {
                 let cadena='Gracias '+user+' por donarme '+donation+'.'
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))

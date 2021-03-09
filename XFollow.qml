@@ -10,6 +10,8 @@ Item {
     width: app.fs*10
     height: width*2
     signal newFollowEvent(string user)
+    signal newHostEvent(string user)
+    signal newRaidEvent(string user, string numberUsers)
     signal newDonationEvent(string user, string donation)
     property string moduleName: 'followEvents'
     property alias urlWidget: w.url
@@ -46,6 +48,17 @@ Item {
                         if(s.indexOf('FOLLOW')>=0){
                             m0=result2.replace(/FOLLOW/g, '').replace(/\n/g, '')
                             r.newFollowEvent(m0)
+                        }
+                        if(s.indexOf('HOST (')>=0){
+                            m0=result2//.replace(/\n/g, '---')
+                            let m1=m0.split('\n')
+                            r.newHostEvent(m1[1])
+                        }
+                        if(s.indexOf('RAID (')>=0){
+                            m0=result2//.replace(/\n/g, '---')
+                            let m1=m0.split('\n')
+                            let m2=m1[0].split('RAID (')[1].replace(/\)/g, '')
+                            r.newRaidEvent(m1[1], m2)
                         }
                         if(s.indexOf('$')>=0){
                             m0=result2//.replace(/\n/g, '---')
