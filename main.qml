@@ -159,7 +159,7 @@ ApplicationWindow {
             width: xApp.width
             anchors.horizontalCenter: parent.horizontalCenter
         }
-        XFollow{
+        XEvents{
             urlWidget: 'https://streamlabs.com/widgets/event-list/v1/15602D8555920F741CDF'
             anchors.right: parent.right
             onNewFollowEvent: {
@@ -167,7 +167,7 @@ ApplicationWindow {
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
             }
             onNewHostEvent: {
-                let cadena='Gracias '+(''+user).replace(/_/g, ' ')+' por ese alojarme.'
+                let cadena='Gracias '+(''+user).replace(/_/g, ' ')+' por alojarme en tu canal.'
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
             }
             onNewRaidEvent: {
@@ -175,7 +175,7 @@ ApplicationWindow {
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
             }
             onNewDonationEvent: {
-                let cadena='Gracias '+user+' por donarme '+donation+'.'
+                let cadena='Gracias '+user+' por apoyarme con esos '+donation+'. Gracias, gracias y gracias por pensar y sentir que me puedes ayudar. Cuenta con mi apoyo. En lo que te pueda ayudar allí estaré.'
                 lm.append(lm.addMsg((''+user).replace(/_/g, ' '), cadena))
             }
         }
